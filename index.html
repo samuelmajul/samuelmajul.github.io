@@ -7,7 +7,7 @@
 <style>
 
 body {
-background: #121212; /* Fondo oscuro por si la cámara tarda en cargar */
+background: #121212; /* Fondo oscuro base */
 color: #d1d1d1;
 font-family: "Verdana", Geneva, sans-serif;
 padding: 40px;
@@ -61,14 +61,14 @@ font-weight: bold;
 font-family: "Courier New", Courier, monospace;
 }
 
-/* colores footer */
+/* Colores footer estilo Net.art */
 .github { color: #ff7a00; }
 .instagram { color: #a855f7; }
 .whatsapp { color: #00c853; }
 .email { color: #ff1744; }
 .blog { color: #2196f3; }
 
-/* CAMARA DE FONDO */
+/* CÁMARA Y CANVAS GENERATIVO Y2K */
 #bgcam {
 position: fixed;
 top: 0;
@@ -77,8 +77,7 @@ width: 100%;
 height: 100%;
 object-fit: cover;
 z-index: -2;
-filter: contrast(1.3) brightness(0.7) saturate(0.6);
-display: none; /* Se oculta el video crudo, mostramos solo el canvas con glitch */
+display: none; /* Ocultamos video crudo; procesamos solo el canvas */
 }
 
 #glitch {
@@ -89,18 +88,20 @@ width: 100%;
 height: 100%;
 object-fit: cover;
 z-index: -1;
-opacity: 0.25;
+opacity: 0.35; /* Ajustado para que el texto de la web sea legible encima */
 mix-blend-mode: difference;
+pointer-events: none; /* Permite que el mouse clickee los links sin bloquear */
 }
 
 </style>
 </head>
 <body>
 
-<!-- CAMARA (Se agrega crossorigin para evitar error de seguridad CORS) -->
+<!-- COMPONENTES MULTIMEDIA DE FONDO -->
 <video autoplay playsinline muted id="bgcam" crossorigin="anonymous"></video>
 <canvas id="glitch"></canvas>
 
+<!-- CONTENIDO DEL PORTFOLIO -->
 <h1 align="center">Samuel Majul</h1>
 <div align="center"> 
   <img src="sami.jpg" class="foto-perfil" alt="Samuel Majul">
@@ -138,12 +139,59 @@ PRODUCTOR / MULTIMEDIA / PIANISTA / LUTHIER / HABITANTE DE INTERNET
 <p align="center"><small>42</small></p>
 </footer>
 
+<!-- SCRIPT GENERATIVO INTERACTIVO HÍBRIDO -->
 <script>
 const video = document.getElementById("bgcam");
 const canvas = document.getElementById("glitch");
 const ctx = canvas.getContext("2d");
 
-// Función para ajustar el tamaño del canvas al redimensionar la ventana
+// Control de interacciones físicas
+let mouse = { x: undefined, y: undefined, radius: 150 };
+let gravity = { x: 0, y: 0, intensity: 0 }; 
+let targetGravity = { x: 0, y: 0 };
+
+// 1. Detección de Mouse (Escritorio)
+window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+window.addEventListener('mouseleave', () => { 
+    mouse.x = undefined; 
+    mouse.y = undefined; 
+});
+
+// 2. Detección de Sensores de Gravedad (Celular)
+function initSensors() {
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+        // Validación de permisos requerida para dispositivos con iOS 13+
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then(permissionState => {
+                    if (permissionState === 'granted') {
+                        window.addEventListener('deviceorientation', handleOrientation);
+                    }
+                })
+                .catch(console.error);
+        } else {
+            // Android y navegadores móviles estándar
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+    }
+}
+
+function handleOrientation(event) {
+    let x = event.gamma || 0; // Inclinación lateral
+    let y = event.beta || 0;  // Inclinación frontal
+
+    // Filtramos y adaptamos los valores a una escala de fuerza física
+    targetGravity.x = x / 45; 
+    targetGravity.y = (y - 45) / 45; // Compensación de ángulo de lectura cómodo
+}
+
+// Disparador de sensores mediante la primera interacción táctil obligatoria
+window.addEventListener('click', initSensors, { once: true });
+window.addEventListener('touchstart', initSensors, { once: true });
+
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -151,44 +199,108 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Solicitar acceso a la cámara
+// Encendido seguro del flujo de cámara
 navigator.mediaDevices.getUserMedia({ video: true })
-.then(stream => {
-    video.srcObject = stream;
-    // Forzamos el play por políticas de navegadores modernos
-    video.play().catch(e => console.log("Espera interacción del usuario", e));
-})
-.catch(err => {
-    console.log("Sin cámara o acceso denegado", err);
-});
+.then(stream => { video.srcObject = stream; video.play().catch(e => {}); })
+.catch(err => { console.log("Cámara no disponible", err); });
+
+// Set de glifos estilo terminal analógica DOS / Y2K
+const chars = "01_/*X#+=-█░▒▓▋■";
 
 function glitch() {
-    // Validamos que el video tenga frames listos para dibujar y no rompa el script
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        try {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Interpolación lineal matemática para suavizar el movimiento del acelerómetro
+        gravity.x += (targetGravity.x - gravity.x) * 0.1;
+        gravity.y += (targetGravity.y - gravity.y) * 0.1;
+        gravity.intensity = Math.sqrt(gravity.x * gravity.x + gravity.y * gravity.y);
 
+        // Renderizamos cámara espejada internamente para simular espejo real con el mouse
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        try {
             let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
             let data = frame.data;
+            
+            // Reestablecemos el fondo oscuro en cada ciclo
+            ctx.fillStyle = "#121212";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Filtro glitch optimizado
-            for (let i = 0; i < data.length; i += 20) {
-                data[i] += Math.random() * 40 - 20;     // Rojo
-                data[i + 1] += Math.random() * 40 - 20; // Verde
-                data[i + 2] += Math.random() * 40 - 20; // Azul
+            const gap = 12; // Densidad del barrido tipográfico
+            ctx.font = "bold 10px monospace";
+
+            for (let y = 0; y < canvas.height; y += gap) {
+                for (let x = 0; x < canvas.width; x += gap) {
+                    let index = (x + y * canvas.width) * 4;
+                    let r = data[index];
+                    let g = data[index + 1];
+                    let b = data[index + 2];
+                    
+                    let brightness = (r + g + b) / 3;
+
+                    // Desplazamiento orgánico basado en la gravedad física del celular
+                    let gravityOffsetX = Math.sin(y * 0.05 + Date.now() * 0.01) * (gravity.x * 25);
+                    let gravityOffsetY = Math.cos(x * 0.05 + Date.now() * 0.01) * (gravity.y * 25);
+
+                    // Deformación focal por proximidad del mouse
+                    let dx = mouse.x - x;
+                    let dy = mouse.y - y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    let mouseOffsetX = 0;
+
+                    if (distance < mouse.radius && mouse.x !== undefined) {
+                        let mouseFactor = (mouse.radius - distance) / mouse.radius;
+                        mouseOffsetX = Math.sin(y * 0.1 + Date.now() * 0.01) * (20 * mouseFactor);
+                        brightness = Math.min(255, brightness * (1 + mouseFactor)); 
+                    }
+
+                    // Calculamos coordenadas de salida sumando las fuerzas físicas aplicadas
+                    let finalX = x + gravityOffsetX + mouseOffsetX;
+                    let finalY = y + gravityOffsetY;
+
+                    if (brightness > 45) {
+                        let charIndex = Math.floor((brightness / 255) * chars.length);
+                        
+                        // Si la agitación física supera el umbral, aleatorizamos los glifos
+                        if (gravity.intensity > 0.5 && Math.random() > 0.4) {
+                            charIndex = Math.floor(Math.random() * chars.length);
+                        }
+                        
+                        let char = chars[charIndex] || " ";
+
+                        // Dinámica de iluminación cromática interactiva
+                        if (gravity.intensity > 0.3) {
+                            // Al inclinar el celular muta a tonalidades magenta y cian ácidas
+                            let rPulse = Math.floor(gravity.intensity * 80);
+                            ctx.fillStyle = `rgba(${rPulse}, ${brightness}, ${120 + rPulse}, 0.9)`;
+                        } else if (distance < mouse.radius && mouse.x !== undefined) {
+                            ctx.fillStyle = `rgba(0, 255, 200, ${brightness / 255})`; // Foco cian eléctrico
+                        } else {
+                            ctx.fillStyle = `rgba(0, ${brightness}, 70, 0.9)`; // Verde fósforo crudo
+                        }
+
+                        ctx.fillText(char, finalX, finalY);
+                    }
+                }
             }
 
-            ctx.putImageData(frame, 0, 0);
-        } catch (e) {
-            console.error("Error procesando glitch:", e);
-        }
+            // Módulo de desgarro de pantalla (Datamoshing por deformación física)
+            let tearChance = 0.85 - (gravity.intensity * 0.2); 
+            if (Math.random() > Math.max(0.5, tearChance)) {
+                let sliceY = Math.random() * canvas.height;
+                let sliceH = Math.random() * 120 + 20;
+                let displacement = (Math.random() * 80 - 40) * (1 + gravity.intensity);
+                ctx.drawImage(canvas, 0, sliceY, canvas.width, sliceH, displacement, sliceY, canvas.width, sliceH);
+            }
+
+        } catch (e) { console.error(e); }
     }
     requestAnimationFrame(glitch);
 }
 
-// Inicia el bucle de renderizado de forma segura
 requestAnimationFrame(glitch);
 </script>
 </body>
 </html>
-
