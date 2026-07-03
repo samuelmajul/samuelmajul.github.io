@@ -1,2 +1,0 @@
-# samuelmajul.github.io
-portfolio
