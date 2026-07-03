@@ -1,67 +1,64 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Samuel Majul // Portfolio</title>
-
 <style>
 
 body {
-  background: transparent;
-  color: #d1d1d1;
-  font-family: "Verdana", Geneva, sans-serif;
-  padding: 40px;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
-  position: relative;
-  z-index: 1;
+background: #121212; /* Fondo oscuro por si la cámara tarda en cargar */
+color: #d1d1d1;
+font-family: "Verdana", Geneva, sans-serif;
+padding: 40px;
+max-width: 600px;
+margin: 0 auto;
+line-height: 1.6;
+position: relative;
+z-index: 1;
 }
 
 h1, h3 {
-  font-family: "Courier New", Courier, monospace;
-  color: #ffffff;
-  margin-bottom: 5px;
+font-family: "Courier New", Courier, monospace;
+color: #ffffff;
+margin-bottom: 5px;
 }
 
 .foto-perfil {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  border: 2px solid #d1d1d1;
-  margin-top: 15px;
-  margin-bottom: 20px;
-  object-fit: cover;
+width: 150px;
+height: 150px;
+border-radius: 50%;
+border: 2px solid #d1d1d1;
+margin-top: 15px;
+margin-bottom: 20px;
+object-fit: cover;
 }
 
 a {
-  text-decoration: none;
-  font-weight: bold;
+text-decoration: none;
+font-weight: bold;
 }
 
 a:hover {
-  text-decoration: underline;
-  opacity: 0.8;
+text-decoration: underline;
+opacity: 0.8;
 }
 
 hr {
-  border: 0;
-  border-top: 1px dashed #444444;
-  margin: 30px 0;
+border: 0;
+border-top: 1px dashed #444444;
+margin: 30px 0;
 }
 
 .footer-links {
-  text-align: center;
-  margin-top: 10px;
+text-align: center;
+margin-top: 10px;
 }
 
 .footer-links a {
-  margin: 0 10px;
-  font-weight: bold;
-  font-family: "Courier New", Courier, monospace;
+margin: 0 10px;
+font-weight: bold;
+font-family: "Courier New", Courier, monospace;
 }
 
 /* colores footer */
@@ -73,41 +70,40 @@ hr {
 
 /* CAMARA DE FONDO */
 #bgcam {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -2;
-  filter: contrast(1.3) brightness(0.7) saturate(0.6);
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+object-fit: cover;
+z-index: -2;
+filter: contrast(1.3) brightness(0.7) saturate(0.6);
+display: none; /* Se oculta el video crudo, mostramos solo el canvas con glitch */
 }
 
 #glitch {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  opacity: 0.25;
-  mix-blend-mode: difference;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+object-fit: cover;
+z-index: -1;
+opacity: 0.25;
+mix-blend-mode: difference;
 }
 
 </style>
-
 </head>
-
 <body>
 
-<!-- CAMARA -->
-<video autoplay playsinline muted id="bgcam"></video>
+<!-- CAMARA (Se agrega crossorigin para evitar error de seguridad CORS) -->
+<video autoplay playsinline muted id="bgcam" crossorigin="anonymous"></video>
 <canvas id="glitch"></canvas>
 
 <h1 align="center">Samuel Majul</h1>
-
-<div align="center">
-  <img src="sami.jpg" class="foto-perfil">
+<div align="center"> 
+  <img src="sami.jpg" class="foto-perfil" alt="Samuel Majul">
 </div>
 
 <p align="center">
@@ -115,77 +111,84 @@ PRODUCTOR / MULTIMEDIA / PIANISTA / LUTHIER / HABITANTE DE INTERNET
 </p>
 
 <hr>
-
 <h3>PROYECTOS HTML / JS / P5 / SISTEMAS EXPERIMENTALES</h3>
-
 <ul>
-  <li><a href="osc.html" target="_blank">Osciloscopio</a></li>
-  <li><a href="visualmidi.html" target="_blank">Visual MIDI Learn</a></li>
-  <li><a href="oscam.html" target="_blank">Oscilador de cámara</a></li>
+<li><a href="osc.html" target="_blank">Osciloscopio</a></li>
+<li><a href="visualmidi.html" target="_blank">Visual MIDI Learn</a></li>
+<li><a href="oscam.html" target="_blank">Oscilador de cámara</a></li>
 </ul>
 
 <hr>
-
 <h3>BLOG</h3>
-
 <ul>
-  <li><a href="blog/index.html">Entrar al blog</a></li>
+<li><a href="blog/index.html">Entrar al blog</a></li>
 </ul>
 
 <hr>
-
-<div class="footer-links">
-  <a href="https://github.com/samuelmajul" target="_blank" class="github">GitHub</a>
-  <a href="https://instagram.com/samuelmajul" target="_blank" class="instagram">Instagram</a>
-  <a href="https://wa.me/5493525413557" target="_blank" class="whatsapp">WhatsApp</a>
-  <a href="mailto:samuelmajul@gmail.com" class="email">Email</a>
+<div class="footer-links"> 
+  <a href="https://github.com" target="_blank" class="github">GitHub</a> 
+  <a href="https://instagram.com" target="_blank" class="instagram">Instagram</a> 
+  <a href="https://wa.me" target="_blank" class="whatsapp">WhatsApp</a> 
+  <a href="mailto:samuelmajul@gmail.com" class="email">Email</a> 
+  <a href="blog/index.html" class="blog">Blog</a>
 </div>
 
 <hr>
-
 <footer>
-  <p align="center"><small>42</small></p>
+<p align="center"><small>42</small></p>
 </footer>
 
 <script>
-
 const video = document.getElementById("bgcam");
 const canvas = document.getElementById("glitch");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// Función para ajustar el tamaño del canvas al redimensionar la ventana
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
+// Solicitar acceso a la cámara
 navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => {
+.then(stream => {
     video.srcObject = stream;
-  })
-  .catch(err => {
-    console.log("sin cámara", err);
-  });
+    // Forzamos el play por políticas de navegadores modernos
+    video.play().catch(e => console.log("Espera interacción del usuario", e));
+})
+.catch(err => {
+    console.log("Sin cámara o acceso denegado", err);
+});
 
 function glitch() {
-  try {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Validamos que el video tenga frames listos para dibujar y no rompa el script
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        try {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let data = frame.data;
+            let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = frame.data;
 
-    for (let i = 0; i < data.length; i += 20) {
-      data[i] += Math.random() * 40 - 20;
-      data[i + 1] += Math.random() * 40 - 20;
-      data[i + 2] += Math.random() * 40 - 20;
+            // Filtro glitch optimizado
+            for (let i = 0; i < data.length; i += 20) {
+                data[i] += Math.random() * 40 - 20;     // Rojo
+                data[i + 1] += Math.random() * 40 - 20; // Verde
+                data[i + 2] += Math.random() * 40 - 20; // Azul
+            }
+
+            ctx.putImageData(frame, 0, 0);
+        } catch (e) {
+            console.error("Error procesando glitch:", e);
+        }
     }
-
-    ctx.putImageData(frame, 0, 0);
-  } catch (e) {}
-
-  requestAnimationFrame(glitch);
+    requestAnimationFrame(glitch);
 }
 
-video.addEventListener("loadeddata", glitch);
-
+// Inicia el bucle de renderizado de forma segura
+requestAnimationFrame(glitch);
 </script>
-
 </body>
 </html>
+
