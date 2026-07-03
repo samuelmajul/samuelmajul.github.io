@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,
+      initial-scale=1.0">
+    <title>Cimascopio Lumínico</title>
+    <style>
+  body {
+    background: #0a0a0a;
+    color: #0ff;
+    font-family: monospace;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+  }
+  video, canvas {
+    width: 100%;
+    max-width: 500px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    margin: 10px auto;
+    display: block;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background: #0ff;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  h2 { margin-bottom: 5px; }
+  #freq { color: #0f0; font-size: 1.5em; }
+</style>
+  </head>
+  <body>
+    <h2>OSCILADOR DE CÁMARA<br>
+    </h2>
+    <p>Más luz → más agudo | Menos luz → más grave</p>
+    <button id="startBtn">🔊 Activar sonido</button>
+    <video id="video" autoplay="autoplay" playsinline=""></video>
+    <canvas id="oscilloscope"></canvas>
+    <p>Frecuencia actual: <span id="freq">-</span> Hz</p>
+    <script>
+let ctx, osc, analyser, dataArray;
+let frequency = 220;
+const canvas = document.getElementById("oscilloscope");
+const c = canvas.getContext("2d");
+const freqDisplay = document.getElementById("freq");
+const video = document.getElementById("video");
+const startBtn = document.getElementById("startBtn");
+
+canvas.width = 600; 
+canvas.height = 200;
+
+// arranca el audio al click
+startBtn.addEventListener("click", async () => {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  osc = ctx.createOscillator();
+  analyser = ctx.createAnalyser();
+  osc.type = "sine";
+  osc.frequency.value = frequency;
+  osc.connect(analyser);
+  analyser.connect(ctx.destination);
+  osc.start();
+
+  startBtn.disabled = true;
+  startBtn.textContent = "Sonido activo 🔈";
+
+  // cámara
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    processVideo();
+  } catch (err) {
+    console.error("Error al acceder a la cámara:", err);
+  }
+
+  visualize();
+});
+
+function processVideo(){
+  const tempCanvas = document.createElement("canvas");
+  const tempCtx = tempCanvas.getContext("2d");
+  tempCanvas.width = 100;
+  tempCanvas.height = 75;
+
+  function analyzeFrame(){
+    tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+    const frame = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    const pixels = frame.data;
+    let totalBrightness = 0;
+    for(let i=0; i<pixels.length; i+=4){
+      const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
+      totalBrightness += (r + g + b) / 3;
+    }
+    const avgBrightness = totalBrightness / (pixels.length / 4);
+    frequency = 100 + (avgBrightness / 255) * 900;
+    if (osc) osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+    freqDisplay.textContent = frequency.toFixed(1);
+    requestAnimationFrame(analyzeFrame);
+  }
+  analyzeFrame();
+}
+
+// visualizador
+function visualize(){
+  analyser.fftSize = 1024;
+  dataArray = new Uint8Array(analyser.fftSize);
+  function draw(){
+    requestAnimationFrame(draw);
+    analyser.getByteTimeDomainData(dataArray);
+    c.fillStyle = "#111";
+    c.fillRect(0,0,canvas.width,canvas.height);
+    c.beginPath();
+    let sliceWidth = canvas.width / dataArray.length;
+    let x = 0;
+    for(let i=0; i<dataArray.length; i++){
+      let v = dataArray[i] / 128.0;
+      let y = v * canvas.height/2;
+      if(i===0) c.moveTo(x,y);
+      else c.lineTo(x,y);
+      x += sliceWidth;
+    }
+    c.strokeStyle = "#0ff";
+    c.lineWidth = 2;
+    c.stroke();
+  }
+  draw();
+}
+</script>
+  </body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>Osciloscopio y vectorscopio</title>
+    <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: black;
+    overflow: hidden;
+    font-family: monospace;
+  }
+  canvas {
+    display: block;
+  }
+  #menu {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0,0,0,0.8);
+    color: #0f0;
+    padding: 10px;
+    border: 1px solid #0f0;
+    display: none;
+    z-index: 10;
+  }
+  #menu label {
+    display: block;
+    margin: 5px 0;
+  }
+  #terminal {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    background: rgba(0,0,0,0.9);
+    color: #0f0;
+    font-family: monospace;
+    display: none;
+    padding: 10px;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  #vectorscope {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    border: 1px solid #0f0;
+    width: 200px;
+    height: 200px;
+    background: black;
+    z-index: 5;
+  }
+</style>
+  </head>
+  <body>
+    <canvas id="oscilloscope"></canvas>
+    <div id="vectorscope"> <canvas id="vectorCanvas" width="200"
+        height="200"></canvas> </div>
+    <div id="menu"> <label>Color Osciloscopio: <input id="waveColor"
+          value="#00ff00" type="color"></label> <label>Color
+        Vectorscopio: <input id="vectorColor" value="#ff00ff"
+          type="color"></label> <label>Ganancia: <input id="gain"
+          min="0.5" max="5" step="0.1" value="1" type="range"></label> <label>Tamaño
+
+        Línea: <input id="lineWidth" min="1" max="5" step="0.5"
+          value="2" type="range"></label> </div>
+    <div id="terminal">
+      <div id="terminalContent">&gt; Terminal Falopa activa...</div>
+    </div>
+    <script>
+const canvas = document.getElementById('oscilloscope');
+const ctx = canvas.getContext('2d');
+
+const vectorCanvas = document.getElementById('vectorCanvas');
+const vctx = vectorCanvas.getContext('2d');
+
+let waveColor = document.getElementById('waveColor').value;
+let vectorColor = document.getElementById('vectorColor').value;
+let gain = parseFloat(document.getElementById('gain').value);
+let lineWidth = parseFloat(document.getElementById('lineWidth').value);
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+document.getElementById('waveColor').addEventListener('input', e => waveColor = e.target.value);
+document.getElementById('vectorColor').addEventListener('input', e => vectorColor = e.target.value);
+document.getElementById('gain').addEventListener('input', e => gain = parseFloat(e.target.value));
+document.getElementById('lineWidth').addEventListener('input', e => lineWidth = parseFloat(e.target.value));
+
+async function startAudio() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioCtx.createMediaStreamSource(stream);
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  source.connect(analyser);
+
+  const bufferLength = analyser.fftSize;
+  const dataArray = new Uint8Array(bufferLength);
+
+  function draw() {
+    requestAnimationFrame(draw);
+    analyser.getByteTimeDomainData(dataArray);
+
+    // OSCILOSCOPIO (sin ghosting)
+    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = waveColor;
+    ctx.beginPath();
+
+    let sliceWidth = canvas.width / bufferLength;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+      const v = (dataArray[i] / 128.0 - 1) * gain;
+      const y = canvas.height / 2 + v * canvas.height / 2;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+      x += sliceWidth;
+    }
+    ctx.stroke();
+
+    // VECTORSCOPE X-Y real
+    vctx.clearRect(0,0,vectorCanvas.width, vectorCanvas.height);
+    vctx.strokeStyle = vectorColor;
+    vctx.lineWidth = 1;
+    vctx.beginPath();
+    for(let i=0; i<bufferLength-1; i++){
+      const x1 = (dataArray[i] - 128) * 1.5 + vectorCanvas.width/2;
+      const y1 = (dataArray[i+1] -128) * 1.5 + vectorCanvas.height/2;
+      if(i===0) vctx.moveTo(x1,y1);
+      else vctx.lineTo(x1,y1);
+    }
+    vctx.stroke();
+  }
+
+  draw();
+}
+
+startAudio().catch(e => console.error(e));
+
+// Atajos
+document.addEventListener('keydown', e => {
+  if(e.key === 'm' || e.key === 'M'){
+    document.getElementById('menu').style.display =
+      document.getElementById('menu').style.display === 'none' ? 'block' : 'none';
+  }
+  if(e.key === 't' || e.key === 'T'){
+    document.getElementById('terminal').style.display =
+      document.getElementById('terminal').style.display === 'none' ? 'block' : 'none';
+  }
+  if(e.key === 'f' || e.key === 'F'){
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+});
+</script>
+  </body>
+</html>

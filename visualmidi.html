@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>VISUALES Y MIDI LEARN</title>
+    <style>
+    html,body{height:100%;margin:0;background:#080808;color:#eee;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+    #container{display:grid;grid-template-columns:1fr 340px;gap:12px;height:100vh;padding:12px}
+    canvas{width:100%;height:100%;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.6);background:#000}
+    .panel{background:linear-gradient(180deg,#0b0b0b,#0f1720);padding:14px;border-radius:12px;box-shadow:inset 0 -6px 24px rgba(255,255,255,.02)}
+    h1{font-size:16px;margin:0 0 10px}
+    .row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    label{font-size:12px;color:#bfc7d6}
+    .knob{width:100%;}
+    input[type=range]{width:100%}
+    table{width:100%;font-size:13px;border-collapse:collapse}
+    td,th{padding:6px 4px;border-bottom:1px dashed rgba(255,255,255,.03)}
+    button{background:#1f2937;border:none;color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer}
+    .small{font-size:12px;color:#9aa6b2}
+    .status{margin-top:8px;font-size:13px}
+    .midi-learn{background:#334155}
+  </style>
+  </head>
+  <body>
+    <div id="container"> <canvas id="hydra"></canvas>
+      <div class="panel">
+        <h1>VISUAL Y MIDI LEARN<br>
+        </h1>
+        <div class="small">Con MIDI-learn: hacés click en el control y
+          movés la perilla del hardware.</div>
+        <div style="margin-top:12px">
+          <div class="row"><label style="width:110px">Scale</label><input
+              class="knob" id="scale" min="0" max="60" step="0.1"
+              value="15.9" type="range"></div>
+          <div class="row"><label style="width:110px">Speed</label><input
+              class="knob" id="speed" min="0" max="2" step="0.01"
+              value="0.18" type="range"></div>
+          <div class="row"><label style="width:110px">Hue (0-1)</label><input
+              class="knob" id="hue" min="0" max="1" step="0.001"
+              value="0.6" type="range"></div>
+          <div class="row"><label style="width:110px">Mix</label><input
+              class="knob" id="mix" min="0" max="1" step="0.01"
+              value="0.5" type="range"></div>
+          <div class="row"><label style="width:110px">Feedback</label><input
+              class="knob" id="feedback" min="0" max="1" step="0.01"
+              value="0.7" type="range"></div>
+          <div class="row"><label style="width:110px">Kaleid</label><input
+              class="knob" id="kaleid" min="1" max="12" step="1"
+              value="3" type="range"></div>
+          <div
+            style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <button id="learnBtn" class="midi-learn">MIDI learn: OFF</button>
+            <button id="randomize">Randomize</button> <button
+              id="freeze">Freeze</button> </div>
+          <div style="margin-top:12px">
+            <table>
+              <thead><tr>
+                  <th>Control</th>
+                  <th>Mapped CC</th>
+                </tr>
+              </thead> <tbody id="mappingTable">
+              </tbody>
+            </table>
+          </div>
+          <div class="status" id="status">MIDI: waiting...</div>
+        </div>
+        <div
+          style="position:relative;margin-top:14px;font-size:12px;color:#9aa6b2">
+          <div>Tips: si usás Ableton, activá "Track"/"Remote" en el
+            puerto MIDI, o usá loopMIDI/LoopBe para ruteo virtual.</div>
+          <div style="margin-top:6px">Chrome/Edge soportan WebMIDI
+            directo. Abrí DevTools si algo no anda.</div>
+        </div>
+      </div>
+    </div>
+    <!-- hydra-synth -->
+    <script src="https://cdn.jsdelivr.net/npm/hydra-synth@1.1.1/dist/hydra-synth.min.js"></script>
+    <script>
+    const params = {scale:10,speed:0.18,hue:0.6,mix:0.5,feedback:0.7,kaleid:3,freeze:false};
+
+    const hydraCanvas = document.getElementById('hydra');
+    const hydra = new Hydra({canvas:hydraCanvas, detectAudio:false});
+
+    // Visual patch
+    osc(()=>params.scale, ()=>params.speed, 1)
+      .color(()=>params.hue, ()=>Math.max(0.1, params.hue*0.7), 1)
+      .rotate(()=>time * 0.05)
+      .modulate(
+        osc(()=>params.scale*0.5, ()=>params.speed*0.9, 0.5).rotate(()=>params.feedback * 2),
+        ()=>params.feedback
+      )
+      .kaleid(()=>Math.max(1, Math.round(params.kaleid)))
+      .blend(o0, ()=>params.mix)   <!-- FIX: blend con o0 -->
+      .out(o0);
+
+    render(o0);  // asegura salida visible
+
+    // UI hookup
+    const controls = ['scale','speed','hue','mix','feedback','kaleid'];
+    controls.forEach(k=>{
+      const el=document.getElementById(k);
+      el.addEventListener('input',e=>params[k]=parseFloat(e.target.value));
+    });
+
+    // Freeze toggle
+    const freezeBtn=document.getElementById('freeze');
+    freezeBtn.addEventListener('click',()=>{
+      params.freeze=!params.freeze;
+      freezeBtn.textContent=params.freeze?'Unfreeze':'Freeze';
+      hydra.pause=params.freeze;
+    });
+
+    // Randomize
+    document.getElementById('randomize').addEventListener('click',()=>{
+      params.scale=Math.random()*50+1;
+      params.speed=Math.random()*1.6;
+      params.hue=Math.random();
+      params.mix=Math.random();
+      params.feedback=Math.random();
+      params.kaleid=Math.floor(Math.random()*11)+1;
+      controls.forEach(k=>document.getElementById(k).value=params[k]);
+    });
+
+    // MIDI
+    let midiAccess=null,midiInputs=[];
+    const mapping={scale:1,speed:2,hue:3,mix:4,feedback:5,kaleid:6};
+    let learnMode=false,learnTarget=null;
+    const mappingTable=document.getElementById('mappingTable');
+    function refreshMappingTable(){
+      mappingTable.innerHTML='';
+      for(const key of controls){
+        const tr=document.createElement('tr');
+        const td1=document.createElement('td');td1.textContent=key;
+        const td2=document.createElement('td');
+        const btn=document.createElement('button');btn.className='small';
+        btn.textContent=mapping[key]!=null?('CC '+mapping[key]):'unmapped';
+        btn.addEventListener('click',()=>{
+          learnMode=true;learnTarget=key;
+          document.getElementById('learnBtn').textContent='MIDI learn: waiting...';
+        });
+        td2.appendChild(btn);tr.appendChild(td1);tr.appendChild(td2);mappingTable.appendChild(tr);
+      }
+    }
+    refreshMappingTable();
+
+    document.getElementById('learnBtn').addEventListener('click',()=>{
+      learnMode=!learnMode;learnTarget=null;
+      document.getElementById('learnBtn').textContent=learnMode?'MIDI learn: ON (click control)':'MIDI learn: OFF';
+    });
+
+    function onMIDIMessage(e){
+      const [status,cc,value]=e.data;
+      const isCC=(status & 0xf0)===0xb0;
+      if(!isCC)return;
+
+      if(learnMode && learnTarget){
+        mapping[learnTarget]=cc;learnMode=false;learnTarget=null;
+        document.getElementById('learnBtn').textContent='MIDI learn: OFF';
+        refreshMappingTable();return;
+      }
+
+      for(const key of Object.keys(mapping)){
+        if(mapping[key]===cc){
+          const norm=value/127;
+          switch(key){
+            case'scale':params.scale=norm*60;break;
+            case'speed':params.speed=norm*2;break;
+            case'hue':params.hue=norm;break;
+            case'mix':params.mix=norm;break;
+            case'feedback':params.feedback=norm;break;
+            case'kaleid':params.kaleid=Math.floor(norm*11)+1;break;
+          }
+          document.getElementById(key).value=params[key];
+        }
+      }
+    }
+
+    function onMIDISuccess(mAccess){
+      midiAccess=mAccess;
+      const inputs=Array.from(midiAccess.inputs.values());
+      midiInputs=inputs;
+      const s=document.getElementById('status');
+      if(inputs.length===0){s.textContent='MIDI: sin entradas detectadas';}
+      else{
+        s.textContent='MIDI: conectado a '+inputs.map(i=>i.name).join(', ');
+        inputs.forEach(input=>input.onmidimessage=onMIDIMessage);
+      }
+      midiAccess.onstatechange=()=>{
+        const ins=Array.from(midiAccess.inputs.values());
+        midiInputs=ins;
+        s.textContent='MIDI: '+(ins.length?ins.map(i=>i.name).join(', '):'sin entradas');
+      };
+    }
+    function onMIDIFailure(err){
+      document.getElementById('status').textContent='MIDI: error al acceder ('+err+')';
+    }
+
+    if(navigator.requestMIDIAccess){
+      navigator.requestMIDIAccess({sysex:false}).then(onMIDISuccess,onMIDIFailure);
+    } else {
+      document.getElementById('status').textContent='MIDI no soportado';
+    }
+
+    window._yara_hydra={params,mapping,refreshMappingTable};
+  </script>
+  </body>
+</html>
