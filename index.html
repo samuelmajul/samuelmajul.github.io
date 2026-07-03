@@ -91,7 +91,7 @@ height: 100%;
 z-index: -1;
 mix-blend-mode: screen;
 pointer-events: none;
-opacity: 0.3;
+opacity: 0.4;
 }
 
 #sensorBtn {
@@ -109,127 +109,7 @@ cursor: pointer;
 display: none;
 }
 #sensorBtn:hover {
-border-color: #d1d1d1;
-}
-
-/* PANEL CTRL NET.ART 2000 */
-#ctrlPanel {
-position: fixed;
-top: 10px;
-left: 10px;
-z-index: 9999;
-font-family: "Courier New", monospace;
-font-size: 10px;
-color: #d1d1d1;
-background: #1a1a1a;
-border: 1px dashed #444444;
-width: 180px;
-}
-
-#ctrlHeader {
-background: #121212;
-padding: 4px 6px;
-cursor: pointer;
-border-bottom: 1px dashed #444444;
-user-select: none;
-color: #ffffff;
-}
-
-#ctrlHeader:hover {
-background: #222;
-}
-
-#ctrlBody {
-padding: 6px;
-display: none;
-max-height: 70vh;
-overflow-y: auto;
-}
-
-#ctrlPanel.open #ctrlBody {
-display: block;
-}
-
-.ctrl-row {
-margin-bottom: 10px;
-padding-bottom: 8px;
-border-bottom: 1px dotted #333;
-}
-.ctrl-row:last-of-type {
-border-bottom: none;
-}
-
-.ctrl-row label {
-display: block;
-margin-bottom: 3px;
-color: #d1d1d1;
-}
-
-.ctrl-row input[type="range"] {
-width: 100%;
-height: 10px;
-background: #121212;
-border: 1px solid #444;
-outline: none;
--webkit-appearance: none;
-cursor: pointer;
-}
-
-.ctrl-row input[type="range"]::-webkit-slider-thumb {
--webkit-appearance: none;
-width: 8px;
-height: 10px;
-background: #d1d1d1;
-cursor: pointer;
-}
-
-.ctrl-row input[type="range"]::-moz-range-thumb {
-width: 8px;
-height: 10px;
-background: #d1d1d1;
-cursor: pointer;
-border: none;
-}
-
-.ctrl-val {
-color: #00ffff;
-float: right;
-}
-
-.ctrl-btn {
-width: 100%;
-background: transparent;
-border: none;
-color: #d1d1d1;
-padding: 3px 0;
-font-family: "Courier New", monospace;
-font-size: 10px;
-cursor: pointer;
-text-align: left;
-margin-top: 2px;
-}
-
-.ctrl-btn:hover {
-color: #00ffff;
-text-decoration: underline;
-}
-
-.ctrl-btn:before {
-content: "[ ";
-}
-.ctrl-btn:after {
-content: " ]";
-}
-
-#ctrlBody::-webkit-scrollbar {
-width: 8px;
-}
-#ctrlBody::-webkit-scrollbar-track {
-background: #121212;
-border-left: 1px solid #444;
-}
-#ctrlBody::-webkit-scrollbar-thumb {
-background: #444;
+border-color: #00ffff;
 }
 
 p, li {
@@ -245,32 +125,13 @@ font-size: 10px;
 <body>
 <canvas id="glitch"></canvas>
 <button id="sensorBtn">[ACTIVAR SENSORES]</button>
-<!-- PANEL DE CONTROL NET.ART -->
-<div id="ctrlPanel">
-<div id="ctrlHeader">[+] CTRL</div>
-<div id="ctrlBody">
-<div class="ctrl-row"> <label>DENSIDAD <span class="ctrl-val"
-id="valGap">16</span></label> <input id="gapSlider"
-min="8" max="32" value="16" type="range"> </div>
-<div class="ctrl-row"> <label>VELOCIDAD <span class="ctrl-val"
-id="valSpeed">30</span></label> <input id="speedSlider"
-min="1" max="100" value="30" type="range"> </div>
-<div class="ctrl-row"> <label>DATAMOSH <span class="ctrl-val"
-id="valTear">40</span></label> <input id="tearSlider"
-min="0" max="100" value="40" type="range"> </div>
-<div class="ctrl-row"> <label>OPACIDAD <span class="ctrl-val"
-id="valOpacity">30</span></label> <input
-id="opacitySlider" min="10" max="80" value="30" type="range">
-</div>
-<button class="ctrl-btn" id="resetBtn">reset_default</button> <button
-class="ctrl-btn" id="hideBtn">ocultar_panel</button> </div>
-</div>
 <h1 align="center">Samuel Majul</h1>
 <div align="center"> <img src="sami.jpg" class="foto-perfil"
 alt="Samuel Majul">
 </div>
 <p align="center">
-PRODUCTOR / MULTIMEDIA / PIANISTA / LUTHIER <br>
+PRODUCTOR / MULTIMEDIA / PIANISTA / LUTHIER / HABITANTE DE
+INTERNET
 </p>
 <hr>
 <h3>PROYECTOS, DEMOS, HTML / JS / P5 / BLA</h3>
@@ -284,9 +145,12 @@ el dispositivo qu esté ejecutando el script.</p>
 class="proyecto-link">Visual MIDI Learn</a></li>
 </ul>
 <p>Primer intento de generador de visuales en html. Funciona con el
-controlador que se disponga y se puede hacer midi learn. Tiene una
+controlador USB que se conecte y se puede hacer midi learn. Tiene
+una
 funcion para pantalla completa y es totalmente utilizable para
-performance en vivo deste link.</p>
+performance en vivo deste link. Recomiendo usarlo con una pc o
+notebook.<br>
+</p>
 <ul>
 <li><a href="oscam.html" target="_blank" class="proyecto-link">Oscilador
 de cámara</a></li>
@@ -299,7 +163,7 @@ agudas o mas graves.</p>
 <div style="font-family: 'Courier New', monospace; font-size: 12px;
 color: #999; margin: 15px 0; line-height: 1.4;">
 <p style="margin: 0 0 8px 0;">
-&gt; Ensayos, investigaciones y prosas poéticas<br>
+&gt; Ensayos/Procesos de Investigación/Prosa Poética<br>
 </p>
 <p style="margin: 0;">
 <a href="blog/index.html" class="proyecto-link">&gt;&gt;
@@ -325,86 +189,68 @@ const sensorBtn = document.getElementById("sensorBtn");
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-// PARAMETROS SIMPLIFICADOS
-let params = {
-gap: 16,
-speed: 30,
-tearChance: 0.4,
-opacity: 0.3
-};
-
-let mouse = { x: undefined, y: undefined, radius: 100 };
+let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 let gravity = { x: 0, y: 0, intensity: 0 };
 let targetGravity = { x: 0, y: 0 };
 let time = 0;
 
-// CONTROLES
-const ctrlPanel = document.getElementById("ctrlPanel");
-const ctrlHeader = document.getElementById("ctrlHeader");
+// MANCHAS/BLOBS
+const BLOBS = [];
+const NUM_BLOBS = isMobile? 8 : 12;
 
-ctrlHeader.addEventListener('click', () => {
-ctrlPanel.classList.toggle('open');
-ctrlHeader.textContent = ctrlPanel.classList.contains('open')? '[-] CTRL' : '[+] CTRL';
-});
-
-document.getElementById('gapSlider').addEventListener('input', (e) => {
-params.gap = parseInt(e.target.value);
-document.getElementById('valGap').textContent = params.gap;
-});
-
-document.getElementById('speedSlider').addEventListener('input', (e) => {
-params.speed = parseInt(e.target.value);
-document.getElementById('valSpeed').textContent = params.speed;
-});
-
-document.getElementById('tearSlider').addEventListener('input', (e) => {
-params.tearChance = e.target.value / 100;
-document.getElementById('valTear').textContent = e.target.value;
-});
-
-document.getElementById('opacitySlider').addEventListener('input', (e) => {
-params.opacity = e.target.value / 100;
-canvas.style.opacity = params.opacity;
-document.getElementById('valOpacity').textContent = e.target.value;
-});
-
-document.getElementById('resetBtn').addEventListener('click', () => {
-params = {
-gap: 16,
-speed: 30,
-tearChance: 0.4,
-opacity: 0.3
-};
-document.getElementById('gapSlider').value = params.gap;
-document.getElementById('speedSlider').value = params.speed;
-document.getElementById('tearSlider').value = params.tearChance * 100;
-document.getElementById('opacitySlider').value = params.opacity * 100;
-document.getElementById('valGap').textContent = params.gap;
-document.getElementById('valSpeed').textContent = params.speed;
-document.getElementById('valTear').textContent = params.tearChance * 100;
-document.getElementById('valOpacity').textContent = params.opacity * 100;
-canvas.style.opacity = params.opacity;
-});
-
-document.getElementById('hideBtn').addEventListener('click', () => {
-ctrlPanel.style.display = 'none';
-});
-
-window.addEventListener('mousemove', (e) => {
-mouse.x = e.clientX;
-mouse.y = e.clientY;
-});
-window.addEventListener('mouseleave', () => {
-mouse.x = undefined;
-mouse.y = undefined;
-});
-window.addEventListener('touchmove', (e) => {
-if(e.touches[0]) {
-mouse.x = e.touches[0].clientX;
-mouse.y = e.touches[0].clientY;
+class Blob {
+constructor() {
+this.x = Math.random() * canvas.width;
+this.y = Math.random() * canvas.height;
+this.r = 40 + Math.random() * 60;
+this.vx = (Math.random() - 0.5) * 0.5;
+this.vy = (Math.random() - 0.5) * 0.5;
+this.phase = Math.random() * Math.PI * 2;
 }
-});
 
+update() {
+// Movimiento base lento
+this.x += this.vx + Math.sin(time * 0.001 + this.phase) * 0.3;
+this.y += this.vy + Math.cos(time * 0.001 + this.phase) * 0.3;
+
+// Gravedad del acelerómetro
+this.x += gravity.x * 2;
+this.y += gravity.y * 2;
+
+// Repulsión del mouse/touch
+let dx = mouse.x - this.x;
+let dy = mouse.y - this.y;
+let dist = Math.sqrt(dx * dx + dy * dy);
+if (dist < 150) {
+let force = (150 - dist) / 150;
+this.x -= dx * force * 0.05;
+this.y -= dy * force * 0.05;
+}
+
+// Rebote en bordes
+if (this.x < -this.r) this.x = canvas.width + this.r;
+if (this.x > canvas.width + this.r) this.x = -this.r;
+if (this.y < -this.r) this.y = canvas.height + this.r;
+if (this.y > canvas.height + this.r) this.y = -this.r;
+
+// Pulso con intensidad
+this.currentR = this.r + Math.sin(time * 0.003 + this.phase) * 10 + gravity.intensity * 20;
+}
+
+draw() {
+let gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.currentR);
+gradient.addColorStop(0, `rgba(0, 255, 255, ${0.3 + gravity.intensity * 0.4})`);
+gradient.addColorStop(0.5, `rgba(0, 255, 255, ${0.1 + gravity.intensity * 0.2})`);
+gradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+
+ctx.fillStyle = gradient;
+ctx.beginPath();
+ctx.arc(this.x, this.y, this.currentR, 0, Math.PI * 2);
+ctx.fill();
+}
+}
+
+// SENSORES
 function initSensors() {
 if (typeof DeviceOrientationEvent!== 'undefined') {
 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -432,9 +278,21 @@ initSensors();
 function handleOrientation(event) {
 let x = event.gamma || 0;
 let y = event.beta || 0;
-targetGravity.x = (x / 45) * 1.5;
-targetGravity.y = ((y - 45) / 45) * 1.5;
+targetGravity.x = x / 90;
+targetGravity.y = (y - 45) / 90;
 }
+
+window.addEventListener('mousemove', (e) => {
+mouse.x = e.clientX;
+mouse.y = e.clientY;
+});
+
+window.addEventListener('touchmove', (e) => {
+if(e.touches[0]) {
+mouse.x = e.touches[0].clientX;
+mouse.y = e.touches[0].clientY;
+}
+});
 
 function resizeCanvas() {
 canvas.width = window.innerWidth;
@@ -442,49 +300,40 @@ canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
-canvas.style.opacity = params.opacity;
 
-// GLITCH SIMPLIFICADO - SOLO LINEAS Y BLOQUES
-function glitch() {
-time += params.speed * 0.0002;
+// Inicializar blobs
+for (let i = 0; i < NUM_BLOBS; i++) {
+BLOBS.push(new Blob());
+}
+
+// LOOP PRINCIPAL
+function animate() {
+time++;
 
 gravity.x += (targetGravity.x - gravity.x) * 0.05;
 gravity.y += (targetGravity.y - gravity.y) * 0.05;
 gravity.intensity = Math.sqrt(gravity.x * gravity.x + gravity.y * gravity.y);
 
-// Fondo con alpha para dejar estela
-ctx.fillStyle = "rgba(18, 18, 18, 0.3)";
+// Fade suave
+ctx.fillStyle = "rgba(18, 18, 18, 0.1)";
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-// Color base celeste como los links
-ctx.fillStyle = "#00ffff";
+// Actualizar y dibujar manchas
+BLOBS.forEach(blob => {
+blob.update();
+blob.draw();
+});
 
-// Dibujamos solo lineas horizontales que se desplazan
-for (let y = 0; y < canvas.height; y += params.gap) {
-let offsetX = Math.sin(y * 0.01 + time) * (gravity.x * 30);
-let lineWidth = 1 + gravity.intensity * 3;
-
-// Si hay mouse cerca, hacemos la linea más gruesa
-let dy = mouse.y - y;
-if (mouse.y!== undefined && Math.abs(dy) < mouse.radius) {
-lineWidth += (mouse.radius - Math.abs(dy)) / mouse.radius * 5;
+// Glitch ocasional si moves fuerte
+if (gravity.intensity > 0.5 && Math.random() > 0.95) {
+ctx.fillStyle = `rgba(0, 255, 255, ${gravity.intensity * 0.3})`;
+ctx.fillRect(0, Math.random() * canvas.height, canvas.width, 2 + Math.random() * 10);
 }
 
-ctx.fillRect(offsetX, y, canvas.width, lineWidth);
+requestAnimationFrame(animate);
 }
 
-// Datamosh simple: solo desplaza franjas, no recalcula pixeles
-if (Math.random() < params.tearChance * 0.1) {
-let sliceY = Math.random() * canvas.height;
-let sliceH = 20 + Math.random() * 60;
-let displacement = (Math.random() - 0.5) * 80 * (1 + gravity.intensity);
-ctx.drawImage(canvas, 0, sliceY, canvas.width, sliceH, displacement, sliceY, canvas.width, sliceH);
-}
-
-requestAnimationFrame(glitch);
-}
-
-requestAnimationFrame(glitch);
+animate();
 </script>
 </body>
 </html>
