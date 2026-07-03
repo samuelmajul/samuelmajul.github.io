@@ -1,72 +1,79 @@
-<!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,
+initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Samuel Majul // Portfolio</title>
 <style>
 body {
-    background: #121212;
-    color: #d1d1d1;
-    font-family: "Verdana", Geneva, sans-serif;
-    padding: 40px;
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.6;
-    position: relative;
-    z-index: 1;
+background: #121212;
+color: #d1d1d1;
+font-family: "Courier New", Courier, monospace;
+font-size: 13px;
+padding: 40px;
+max-width: 600px;
+margin: 0 auto;
+line-height: 1.5;
+position: relative;
+z-index: 1;
 }
 
 h1, h3 {
-    font-family: "Courier New", Courier, monospace;
-    color: #ffffff;
-    margin-bottom: 5px;
+font-family: "Courier New", Courier, monospace;
+color: #ffffff;
+margin-bottom: 5px;
+font-weight: normal;
 }
 
+h1 { font-size: 18px; }
+h3 { font-size: 14px; }
+
 .foto-perfil {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    border: 2px solid #d1d1d1;
-    margin-top: 15px;
-    margin-bottom: 20px;
-    object-fit: cover;
-    filter: contrast(1.2) saturate(0);
+width: 150px;
+height: 150px;
+border-radius: 50%;
+border: 2px solid #d1d1d1;
+margin-top: 15px;
+margin-bottom: 20px;
+object-fit: cover;
+filter: contrast(1.2) saturate(0);
 }
 
 a {
-    text-decoration: none;
-    font-weight: bold;
+text-decoration: none;
+font-weight: bold;
 }
 
 a:hover {
-    text-decoration: underline;
-    opacity: 0.8;
+text-decoration: underline;
+opacity: 0.8;
 }
 
 .proyecto-link {
-    color: #00ffff;
-    font-family: "Courier New", monospace;
+color: #00ffff;
+font-family: "Courier New", monospace;
 }
 .proyecto-link:hover {
-    color: #ff00ff;
+color: #ff00ff;
 }
 
 hr {
-    border: 0;
-    border-top: 1px dashed #444444;
-    margin: 30px 0;
+border: 0;
+border-top: 1px dashed #444444;
+margin: 30px 0;
 }
 
 .footer-links {
-    text-align: center;
-    margin-top: 10px;
+text-align: center;
+margin-top: 10px;
 }
 
 .footer-links a {
-    margin: 0 10px;
-    font-weight: bold;
-    font-family: "Courier New", monospace;
+margin: 0 10px;
+font-weight: bold;
+font-family: "Courier New", monospace;
 }
 
 .github { color: #ff7a00; }
@@ -75,541 +82,406 @@ hr {
 .email { color: #ff1744; }
 .blog { color: #2196f3; }
 
-#bgcam {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: -2;
-    display: none;
-}
-
 #glitch {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    mix-blend-mode: screen;
-    pointer-events: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: -1;
+mix-blend-mode: screen;
+pointer-events: none;
+opacity: 0.3;
 }
 
 #sensorBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10;
-    background: #1a1a1a;
-    color: #d1d1d1;
-    border: 1px dashed #444;
-    padding: 6px 10px;
-    font-family: "Courier New", monospace;
-    font-size: 10px;
-    cursor: pointer;
-    display: none;
+position: fixed;
+bottom: 20px;
+right: 20px;
+z-index: 10;
+background: #1a1a1a;
+color: #d1d1d1;
+border: 1px dashed #444;
+padding: 6px 10px;
+font-family: "Courier New", monospace;
+font-size: 10px;
+cursor: pointer;
+display: none;
 }
 #sensorBtn:hover {
-    border-color: #d1d1d1;
+border-color: #d1d1d1;
 }
 
 /* PANEL CTRL NET.ART 2000 */
 #ctrlPanel {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 9999;
-    font-family: "Courier New", monospace;
-    font-size: 10px;
-    color: #d1d1d1;
-    background: #1a1a1a;
-    border: 1px dashed #444444;
-    width: 200px;
+position: fixed;
+top: 10px;
+left: 10px;
+z-index: 9999;
+font-family: "Courier New", monospace;
+font-size: 10px;
+color: #d1d1d1;
+background: #1a1a1a;
+border: 1px dashed #444444;
+width: 180px;
 }
 
 #ctrlHeader {
-    background: #121212;
-    padding: 4px 6px;
-    cursor: pointer;
-    border-bottom: 1px dashed #444444;
-    user-select: none;
-    color: #ffffff;
+background: #121212;
+padding: 4px 6px;
+cursor: pointer;
+border-bottom: 1px dashed #444444;
+user-select: none;
+color: #ffffff;
 }
 
 #ctrlHeader:hover {
-    background: #222;
+background: #222;
 }
 
 #ctrlBody {
-    padding: 6px;
-    display: none;
-    max-height: 70vh;
-    overflow-y: auto;
+padding: 6px;
+display: none;
+max-height: 70vh;
+overflow-y: auto;
 }
 
 #ctrlPanel.open #ctrlBody {
-    display: block;
+display: block;
 }
 
 .ctrl-row {
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px dotted #333;
+margin-bottom: 10px;
+padding-bottom: 8px;
+border-bottom: 1px dotted #333;
 }
 .ctrl-row:last-of-type {
-    border-bottom: none;
+border-bottom: none;
 }
 
 .ctrl-row label {
-    display: block;
-    margin-bottom: 3px;
-    color: #d1d1d1;
+display: block;
+margin-bottom: 3px;
+color: #d1d1d1;
 }
 
 .ctrl-row input[type="range"] {
-    width: 100%;
-    height: 10px;
-    background: #121212;
-    border: 1px solid #444;
-    outline: none;
-    -webkit-appearance: none;
-    cursor: pointer;
+width: 100%;
+height: 10px;
+background: #121212;
+border: 1px solid #444;
+outline: none;
+-webkit-appearance: none;
+cursor: pointer;
 }
 
 .ctrl-row input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 8px;
-    height: 10px;
-    background: #d1d1d1;
-    cursor: pointer;
+-webkit-appearance: none;
+width: 8px;
+height: 10px;
+background: #d1d1d1;
+cursor: pointer;
 }
 
 .ctrl-row input[type="range"]::-moz-range-thumb {
-    width: 8px;
-    height: 10px;
-    background: #d1d1d1;
-    cursor: pointer;
-    border: none;
+width: 8px;
+height: 10px;
+background: #d1d1d1;
+cursor: pointer;
+border: none;
 }
 
 .ctrl-val {
-    color: #00ffff;
-    float: right;
+color: #00ffff;
+float: right;
 }
 
 .ctrl-btn {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: #d1d1d1;
-    padding: 3px 0;
-    font-family: "Courier New", monospace;
-    font-size: 10px;
-    cursor: pointer;
-    text-align: left;
-    margin-top: 2px;
+width: 100%;
+background: transparent;
+border: none;
+color: #d1d1d1;
+padding: 3px 0;
+font-family: "Courier New", monospace;
+font-size: 10px;
+cursor: pointer;
+text-align: left;
+margin-top: 2px;
 }
 
 .ctrl-btn:hover {
-    color: #00ffff;
-    text-decoration: underline;
+color: #00ffff;
+text-decoration: underline;
 }
 
 .ctrl-btn:before {
-    content: "[ ";
+content: "[ ";
 }
 .ctrl-btn:after {
-    content: " ]";
+content: " ]";
 }
 
-/* Scrollbar dosmilero */
 #ctrlBody::-webkit-scrollbar {
-    width: 8px;
+width: 8px;
 }
 #ctrlBody::-webkit-scrollbar-track {
-    background: #121212;
-    border-left: 1px solid #444;
+background: #121212;
+border-left: 1px solid #444;
 }
 #ctrlBody::-webkit-scrollbar-thumb {
-    background: #444;
+background: #444;
+}
+
+p, li {
+font-family: "Courier New", Courier, monospace;
+}
+
+small {
+font-family: "Courier New", monospace;
+font-size: 10px;
 }
 </style>
 </head>
 <body>
-
-<video autoplay playsinline muted id="bgcam"></video>
 <canvas id="glitch"></canvas>
 <button id="sensorBtn">[ACTIVAR SENSORES]</button>
-
 <!-- PANEL DE CONTROL NET.ART -->
 <div id="ctrlPanel">
-    <div id="ctrlHeader">// EDITAR CÁMARA</div>
-    <div id="ctrlBody">
-        <div class="ctrl-row">
-            <label>DENSIDAD <span class="ctrl-val" id="valGap">8</span></label>
-            <input type="range" id="gapSlider" min="4" max="20" value="8">
-        </div>
-        <div class="ctrl-row">
-            <label>DATAMOSH <span class="ctrl-val" id="valTear">70</span></label>
-            <input type="range" id="tearSlider" min="0" max="100" value="70">
-        </div>
-        <div class="ctrl-row">
-            <label>RGB_SHIFT <span class="ctrl-val" id="valShift">3</span></label>
-            <input type="range" id="shiftSlider" min="0" max="10" value="3">
-        </div>
-        <div class="ctrl-row">
-            <label>BRILLO_MIN <span class="ctrl-val" id="valBright">35</span></label>
-            <input type="range" id="brightSlider" min="10" max="100" value="35">
-        </div>
-        <div class="ctrl-row">
-            <label>OPACIDAD <span class="ctrl-val" id="valOpacity">40</span></label>
-            <input type="range" id="opacitySlider" min="10" max="100" value="40">
-        </div>
-        <div class="ctrl-row">
-            <label>COLOR_R <span class="ctrl-val" id="valR">0</span></label>
-            <input type="range" id="rSlider" min="0" max="255" value="0">
-        </div>
-        <div class="ctrl-row">
-            <label>COLOR_G <span class="ctrl-val" id="valG">255</span></label>
-            <input type="range" id="gSlider" min="0" max="255" value="255">
-        </div>
-        <div class="ctrl-row">
-            <label>COLOR_B <span class="ctrl-val" id="valB">70</span></label>
-            <input type="range" id="bSlider" min="0" max="255" value="70">
-        </div>
-        <button class="ctrl-btn" id="resetBtn">reset_default</button>
-        <button class="ctrl-btn" id="hideBtn">ocultar_panel</button>
-    </div>
+<div id="ctrlHeader">[+] CTRL</div>
+<div id="ctrlBody">
+<div class="ctrl-row"> <label>DENSIDAD <span class="ctrl-val"
+id="valGap">16</span></label> <input id="gapSlider"
+min="8" max="32" value="16" type="range"> </div>
+<div class="ctrl-row"> <label>VELOCIDAD <span class="ctrl-val"
+id="valSpeed">30</span></label> <input id="speedSlider"
+min="1" max="100" value="30" type="range"> </div>
+<div class="ctrl-row"> <label>DATAMOSH <span class="ctrl-val"
+id="valTear">40</span></label> <input id="tearSlider"
+min="0" max="100" value="40" type="range"> </div>
+<div class="ctrl-row"> <label>OPACIDAD <span class="ctrl-val"
+id="valOpacity">30</span></label> <input
+id="opacitySlider" min="10" max="80" value="30" type="range">
 </div>
-
+<button class="ctrl-btn" id="resetBtn">reset_default</button> <button
+class="ctrl-btn" id="hideBtn">ocultar_panel</button> </div>
+</div>
 <h1 align="center">Samuel Majul</h1>
-<div align="center">
-  <img src="sami.jpg" class="foto-perfil" alt="Samuel Majul">
+<div align="center"> <img src="sami.jpg" class="foto-perfil"
+alt="Samuel Majul">
 </div>
-
 <p align="center">
-PRODUCTOR / MULTIMEDIA / PIANISTA / LUTHIER / HABITANTE DE INTERNET
+PRODUCTOR / MULTIMEDIA / PIANISTA / LUTHIER <br>
 </p>
-
 <hr>
-<h3>PROYECTOS HTML / JS / P5 / SISTEMAS EXPERIMENTALES</h3>
+<h3>PROYECTOS, DEMOS, HTML / JS / P5 / BLA</h3>
 <ul>
 <li><a href="osc.html" target="_blank" class="proyecto-link">Osciloscopio</a></li>
-<li><a href="visualmidi.html" target="_blank" class="proyecto-link">Visual MIDI Learn</a></li>
-<li><a href="oscam.html" target="_blank" class="proyecto-link">Oscilador de cámara</a></li>
 </ul>
-
-<hr>
-<h3>BLOG</h3>
+<p>Un osciloscopio clásico. Funciona con el microfono del celular o
+el dispositivo qu esté ejecutando el script.</p>
 <ul>
-<li><a href="blog/index.html" class="proyecto-link">Entrar al blog</a></li>
+<li><a href="visualmidi.html" target="_blank"
+class="proyecto-link">Visual MIDI Learn</a></li>
 </ul>
-
+<p>Primer intento de generador de visuales en html. Funciona con el
+controlador que se disponga y se puede hacer midi learn. Tiene una
+funcion para pantalla completa y es totalmente utilizable para
+performance en vivo deste link.</p>
+<ul>
+<li><a href="oscam.html" target="_blank" class="proyecto-link">Oscilador
+de cámara</a></li>
+</ul>
+<p>Dependiendo de la intensidad de luz, el oscilador hace notas mas
+agudas o mas graves.</p>
 <hr>
-<div class="footer-links">
-  <a href="https://github.com" target="_blank" class="github">GitHub</a>
-  <a href="https://instagram.com" target="_blank" class="instagram">Instagram</a>
-  <a href="https://wa.me" target="_blank" class="whatsapp">WhatsApp</a>
-  <a href="mailto:samuelmajul@gmail.com" class="email">Email</a>
-  <a href="blog/index.html" class="blog">Blog</a>
+<h3>BLOG <br>
+</h3>
+<div style="font-family: 'Courier New', monospace; font-size: 12px;
+color: #999; margin: 15px 0; line-height: 1.4;">
+<p style="margin: 0 0 8px 0;">
+&gt; Ensayos, investigaciones y prosas poéticas<br>
+</p>
+<p style="margin: 0;">
+<a href="blog/index.html" class="proyecto-link">&gt;&gt;
+ACCEDER_AL_BLOG</a>
+</p>
 </div>
-
+<hr>
+<div class="footer-links"> <a href="https://github.com"
+target="_blank" class="github">GitHub</a> <a
+href="https://instagram.com" target="_blank" class="instagram">Instagram</a>
+<a href="https://wa.me" target="_blank" class="whatsapp">WhatsApp</a>
+<a href="mailto:samuelmajul@gmail.com" class="email">Email</a> <a
+href="blog/index.html" class="blog">Blog</a>
+</div>
 <hr>
 <footer>
 <p align="center"><small>42</small></p>
 </footer>
-
 <script>
-// Todo el JS del glitch queda igual que la versión anterior
-const video = document.getElementById("bgcam");
 const canvas = document.getElementById("glitch");
-const ctx = canvas.getContext("2d", { willReadFrequently: true });
+const ctx = canvas.getContext("2d");
 const sensorBtn = document.getElementById("sensorBtn");
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const SCALE = isMobile? 0.75 : 1;
 
+// PARAMETROS SIMPLIFICADOS
 let params = {
-    gap: isMobile? 8 : 12,
-    tearChance: 0.7,
-    rgbShift: 3,
-    minBright: 35,
-    opacity: 0.4,
-    colorR: 0,
-    colorG: 255,
-    colorB: 70
+gap: 16,
+speed: 30,
+tearChance: 0.4,
+opacity: 0.3
 };
 
-let mouse = { x: undefined, y: undefined, radius: 150 };
+let mouse = { x: undefined, y: undefined, radius: 100 };
 let gravity = { x: 0, y: 0, intensity: 0 };
 let targetGravity = { x: 0, y: 0 };
 let time = 0;
 
+// CONTROLES
 const ctrlPanel = document.getElementById("ctrlPanel");
 const ctrlHeader = document.getElementById("ctrlHeader");
 
 ctrlHeader.addEventListener('click', () => {
-    ctrlPanel.classList.toggle('open');
-    ctrlHeader.textContent = ctrlPanel.classList.contains('open')? '// CTRL' : '// CTRL';
+ctrlPanel.classList.toggle('open');
+ctrlHeader.textContent = ctrlPanel.classList.contains('open')? '[-] CTRL' : '[+] CTRL';
 });
 
 document.getElementById('gapSlider').addEventListener('input', (e) => {
-    params.gap = parseInt(e.target.value);
-    document.getElementById('valGap').textContent = params.gap;
+params.gap = parseInt(e.target.value);
+document.getElementById('valGap').textContent = params.gap;
+});
+
+document.getElementById('speedSlider').addEventListener('input', (e) => {
+params.speed = parseInt(e.target.value);
+document.getElementById('valSpeed').textContent = params.speed;
 });
 
 document.getElementById('tearSlider').addEventListener('input', (e) => {
-    params.tearChance = e.target.value / 100;
-    document.getElementById('valTear').textContent = e.target.value;
-});
-
-document.getElementById('shiftSlider').addEventListener('input', (e) => {
-    params.rgbShift = parseInt(e.target.value);
-    document.getElementById('valShift').textContent = params.rgbShift;
-});
-
-document.getElementById('brightSlider').addEventListener('input', (e) => {
-    params.minBright = parseInt(e.target.value);
-    document.getElementById('valBright').textContent = params.minBright;
+params.tearChance = e.target.value / 100;
+document.getElementById('valTear').textContent = e.target.value;
 });
 
 document.getElementById('opacitySlider').addEventListener('input', (e) => {
-    params.opacity = e.target.value / 100;
-    canvas.style.opacity = params.opacity;
-    document.getElementById('valOpacity').textContent = e.target.value;
-});
-
-document.getElementById('rSlider').addEventListener('input', (e) => {
-    params.colorR = parseInt(e.target.value);
-    document.getElementById('valR').textContent = params.colorR;
-});
-
-document.getElementById('gSlider').addEventListener('input', (e) => {
-    params.colorG = parseInt(e.target.value);
-    document.getElementById('valG').textContent = params.colorG;
-});
-
-document.getElementById('bSlider').addEventListener('input', (e) => {
-    params.colorB = parseInt(e.target.value);
-    document.getElementById('valB').textContent = params.colorB;
+params.opacity = e.target.value / 100;
+canvas.style.opacity = params.opacity;
+document.getElementById('valOpacity').textContent = e.target.value;
 });
 
 document.getElementById('resetBtn').addEventListener('click', () => {
-    params = {
-        gap: isMobile? 8 : 12,
-        tearChance: 0.7,
-        rgbShift: 3,
-        minBright: 35,
-        opacity: 0.4,
-        colorR: 0,
-        colorG: 255,
-        colorB: 70
-    };
-    document.getElementById('gapSlider').value = params.gap;
-    document.getElementById('tearSlider').value = params.tearChance * 100;
-    document.getElementById('shiftSlider').value = params.rgbShift;
-    document.getElementById('brightSlider').value = params.minBright;
-    document.getElementById('opacitySlider').value = params.opacity * 100;
-    document.getElementById('rSlider').value = params.colorR;
-    document.getElementById('gSlider').value = params.colorG;
-    document.getElementById('bSlider').value = params.colorB;
-    document.getElementById('valGap').textContent = params.gap;
-    document.getElementById('valTear').textContent = params.tearChance * 100;
-    document.getElementById('valShift').textContent = params.rgbShift;
-    document.getElementById('valBright').textContent = params.minBright;
-    document.getElementById('valOpacity').textContent = params.opacity * 100;
-    document.getElementById('valR').textContent = params.colorR;
-    document.getElementById('valG').textContent = params.colorG;
-    document.getElementById('valB').textContent = params.colorB;
-    canvas.style.opacity = params.opacity;
+params = {
+gap: 16,
+speed: 30,
+tearChance: 0.4,
+opacity: 0.3
+};
+document.getElementById('gapSlider').value = params.gap;
+document.getElementById('speedSlider').value = params.speed;
+document.getElementById('tearSlider').value = params.tearChance * 100;
+document.getElementById('opacitySlider').value = params.opacity * 100;
+document.getElementById('valGap').textContent = params.gap;
+document.getElementById('valSpeed').textContent = params.speed;
+document.getElementById('valTear').textContent = params.tearChance * 100;
+document.getElementById('valOpacity').textContent = params.opacity * 100;
+canvas.style.opacity = params.opacity;
 });
 
 document.getElementById('hideBtn').addEventListener('click', () => {
-    ctrlPanel.style.display = 'none';
+ctrlPanel.style.display = 'none';
 });
 
 window.addEventListener('mousemove', (e) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
+mouse.x = e.clientX;
+mouse.y = e.clientY;
 });
 window.addEventListener('mouseleave', () => {
-    mouse.x = undefined;
-    mouse.y = undefined;
+mouse.x = undefined;
+mouse.y = undefined;
 });
-
 window.addEventListener('touchmove', (e) => {
-    if(e.touches[0]) {
-        mouse.x = e.touches[0].clientX;
-        mouse.y = e.touches[0].clientY;
-    }
+if(e.touches[0]) {
+mouse.x = e.touches[0].clientX;
+mouse.y = e.touches[0].clientY;
+}
 });
 
 function initSensors() {
-    if (typeof DeviceOrientationEvent!== 'undefined') {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            DeviceOrientationEvent.requestPermission()
-            .then(permissionState => {
-                    if (permissionState === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                        sensorBtn.style.display = 'none';
-                    }
-                }).catch(console.error);
-        } else {
-            window.addEventListener('deviceorientation', handleOrientation);
-            sensorBtn.style.display = 'none';
-        }
-    }
+if (typeof DeviceOrientationEvent!== 'undefined') {
+if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+DeviceOrientationEvent.requestPermission()
+.then(permissionState => {
+if (permissionState === 'granted') {
+window.addEventListener('deviceorientation', handleOrientation);
+sensorBtn.style.display = 'none';
+}
+}).catch(console.error);
+} else {
+window.addEventListener('deviceorientation', handleOrientation);
+sensorBtn.style.display = 'none';
+}
+}
 }
 
 if (isMobile && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    sensorBtn.style.display = 'block';
-    sensorBtn.addEventListener('click', initSensors);
+sensorBtn.style.display = 'block';
+sensorBtn.addEventListener('click', initSensors);
 } else {
-    initSensors();
+initSensors();
 }
 
 function handleOrientation(event) {
-    let x = event.gamma || 0;
-    let y = event.beta || 0;
-    targetGravity.x = (x / 45) * (isMobile? 3 : 1);
-    targetGravity.y = ((y - 45) / 45) * (isMobile? 3 : 1);
+let x = event.gamma || 0;
+let y = event.beta || 0;
+targetGravity.x = (x / 45) * 1.5;
+targetGravity.y = ((y - 45) / 45) * 1.5;
 }
 
 function resizeCanvas() {
-    canvas.width = window.innerWidth * SCALE;
-    canvas.height = window.innerHeight * SCALE;
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 canvas.style.opacity = params.opacity;
 
-navigator.mediaDevices.getUserMedia({
-    video: {
-        facingMode: 'user',
-        width: { ideal: 640 },
-        height: { ideal: 480 }
-    }
-})
-.then(stream => {
-    video.srcObject = stream;
-    video.play().catch(e => {});
-})
-.catch(err => { console.log("Cámara no disponible", err); });
+// GLITCH SIMPLIFICADO - SOLO LINEAS Y BLOQUES
+function glitch() {
+time += params.speed * 0.0002;
 
-const chars = "01_/*X#+=-█░▒▓▋■▌▐▀▄";
+gravity.x += (targetGravity.x - gravity.x) * 0.05;
+gravity.y += (targetGravity.y - gravity.y) * 0.05;
+gravity.intensity = Math.sqrt(gravity.x * gravity.x + gravity.y * gravity.y);
 
-function drawCoverVideo() {
-    const videoRatio = video.videoWidth / video.videoHeight;
-    const canvasRatio = canvas.width / canvas.height;
-    let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+// Fondo con alpha para dejar estela
+ctx.fillStyle = "rgba(18, 18, 18, 0.3)";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    if (canvasRatio > videoRatio) {
-        drawWidth = canvas.width;
-        drawHeight = canvas.width / videoRatio;
-        offsetY = (canvas.height - drawHeight) / 2;
-    } else {
-        drawHeight = canvas.height;
-        drawWidth = canvas.height * videoRatio;
-        offsetX = (canvas.width - drawWidth) / 2;
-    }
+// Color base celeste como los links
+ctx.fillStyle = "#00ffff";
 
-    ctx.save();
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, -drawWidth - offsetX, offsetY, drawWidth, drawHeight);
-    ctx.restore();
+// Dibujamos solo lineas horizontales que se desplazan
+for (let y = 0; y < canvas.height; y += params.gap) {
+let offsetX = Math.sin(y * 0.01 + time) * (gravity.x * 30);
+let lineWidth = 1 + gravity.intensity * 3;
+
+// Si hay mouse cerca, hacemos la linea más gruesa
+let dy = mouse.y - y;
+if (mouse.y!== undefined && Math.abs(dy) < mouse.radius) {
+lineWidth += (mouse.radius - Math.abs(dy)) / mouse.radius * 5;
 }
 
-function glitch() {
-    time += 0.016;
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        gravity.x += (targetGravity.x - gravity.x) * 0.1;
-        gravity.y += (targetGravity.y - gravity.y) * 0.1;
-        gravity.intensity = Math.sqrt(gravity.x * gravity.x + gravity.y * gravity.y);
+ctx.fillRect(offsetX, y, canvas.width, lineWidth);
+}
 
-        drawCoverVideo();
+// Datamosh simple: solo desplaza franjas, no recalcula pixeles
+if (Math.random() < params.tearChance * 0.1) {
+let sliceY = Math.random() * canvas.height;
+let sliceH = 20 + Math.random() * 60;
+let displacement = (Math.random() - 0.5) * 80 * (1 + gravity.intensity);
+ctx.drawImage(canvas, 0, sliceY, canvas.width, sliceH, displacement, sliceY, canvas.width, sliceH);
+}
 
-        try {
-            let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            let data = frame.data;
-
-            ctx.fillStyle = "#121212";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.font = `bold ${isMobile? 8 : 10}px monospace`;
-
-            for (let y = 0; y < canvas.height; y += params.gap) {
-                for (let x = 0; x < canvas.width; x += params.gap) {
-                    let index = (x + y * canvas.width) * 4;
-                    let r = data[index];
-                    let g = data[index + 1];
-                    let b = data[index + 2];
-
-                    let brightness = (r * 0.299 + g * 0.587 + b * 0.114);
-
-                    let gravityOffsetX = Math.sin(y * 0.05 + time) * (gravity.x * 35);
-                    let gravityOffsetY = Math.cos(x * 0.05 + time) * (gravity.y * 35);
-
-                    let dx = mouse.x * SCALE - x;
-                    let dy = mouse.y * SCALE - y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-                    let mouseOffsetX = 0;
-
-                    if (distance < mouse.radius * SCALE && mouse.x!== undefined) {
-                        let mouseFactor = (mouse.radius * SCALE - distance) / (mouse.radius * SCALE);
-                        mouseOffsetX = Math.sin(y * 0.1 + time * 2) * (30 * mouseFactor);
-                        brightness = Math.min(255, brightness * (1 + mouseFactor * 1.5));
-                    }
-
-                    let finalX = x + gravityOffsetX + mouseOffsetX;
-                    let finalY = y + gravityOffsetY;
-
-                    if (brightness > params.minBright) {
-                        let charIndex = Math.floor((brightness / 255) * chars.length);
-
-                        if (gravity.intensity > 0.3 && Math.random() > 0.3) {
-                            charIndex = Math.floor(Math.random() * chars.length);
-                            finalX += (Math.random() - 0.5) * 10 * gravity.intensity;
-                        }
-
-                        let char = chars[charIndex] || " ";
-
-                        if (gravity.intensity > 0.2 && params.rgbShift > 0) {
-                            let shift = gravity.intensity * params.rgbShift;
-                            ctx.fillStyle = `rgba(255, ${brightness}, ${120 + brightness}, 0.9)`;
-                            ctx.fillText(char, finalX - shift, finalY);
-                            ctx.fillStyle = `rgba(0, 255, ${brightness}, 0.9)`;
-                            ctx.fillText(char, finalX + shift, finalY);
-                            ctx.fillStyle = `rgba(${brightness}, 200, 255, 0.9)`;
-                            ctx.fillText(char, finalX, finalY);
-                        } else if (distance < mouse.radius * SCALE && mouse.x!== undefined) {
-                            ctx.fillStyle = `rgba(0, 255, 200, ${brightness / 255})`;
-                            ctx.fillText(char, finalX, finalY);
-                        } else {
-                            ctx.fillStyle = `rgba(${params.colorR}, ${params.colorG}, ${params.colorB}, 0.9)`;
-                            ctx.fillText(char, finalX, finalY);
-                        }
-                    }
-                }
-            }
-
-            ctx.fillStyle = 'rgba(0,0,0,0.15)';
-            for(let i = 0; i < canvas.height; i += 3) {
-                ctx.fillRect(0, i, canvas.width, 1);
-            }
-
-            if (Math.random() > params.tearChance) {
-                let sliceY = Math.random() * canvas.height;
-                let sliceH = Math.random() * 150 + 20;
-                let displacement = (Math.random() * 120 - 60) * (1 + gravity.intensity * 2);
-                ctx.drawImage(canvas, 0, sliceY, canvas.width, sliceH, displacement, sliceY, canvas.width, sliceH);
-            }
-
-        } catch (e) { console.error(e); }
-    }
-    requestAnimationFrame(glitch);
+requestAnimationFrame(glitch);
 }
 
 requestAnimationFrame(glitch);
