@@ -1,138 +1,132 @@
 <!DOCTYPE html>
-<html lang="es">
-  <head>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ASCII CAM</title>
 
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,
-      initial-scale=1.0">
-    <title>oscam</title>
-    <style>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+
+<style>
   body {
-    background: #0a0a0a;
-    color: #0ff;
-    font-family: monospace;
-    text-align: center;
     margin: 0;
-    padding: 20px;
+    background: black;
+    overflow: hidden;
+    font-family: monospace;
+    color: #0f0;
   }
-  video, canvas {
+
+  #ui {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 260px;
+    padding: 10px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid #0f0;
+    backdrop-filter: blur(5px);
+  }
+
+  input, textarea {
     width: 100%;
-    max-width: 500px;
-    border: 2px solid #333;
-    border-radius: 8px;
-    margin: 10px auto;
-    display: block;
+    background: black;
+    color: #0f0;
+    border: 1px solid #0f0;
+    font-family: monospace;
   }
-  button {
-    padding: 10px 20px;
-    font-size: 1em;
-    background: #0ff;
-    color: #000;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-bottom: 10px;
+
+  label {
+    font-size: 12px;
   }
-  h2 { margin-bottom: 5px; }
-  #freq { color: #0f0; font-size: 1.5em; }
+
 </style>
-  </head>
-  <body>
-    <h2>OSCILADOR DE CÁMARA<br>
-    </h2>
-    <p>Más luz → más agudo | Menos luz → más grave</p>
-    <button id="startBtn">🔊 Activar sonido</button>
-    <video id="video" autoplay="autoplay" playsinline=""></video>
-    <canvas id="oscilloscope"></canvas>
-    <p>Frecuencia actual: <span id="freq">-</span> Hz</p>
-    <script>
-let ctx, osc, analyser, dataArray;
-let frequency = 220;
-const canvas = document.getElementById("oscilloscope");
-const c = canvas.getContext("2d");
-const freqDisplay = document.getElementById("freq");
-const video = document.getElementById("video");
-const startBtn = document.getElementById("startBtn");
+</head>
 
-canvas.width = 600; 
-canvas.height = 200;
+<body>
 
-// arranca el audio al click
-startBtn.addEventListener("click", async () => {
-  ctx = new (window.AudioContext || window.webkitAudioContext)();
-  osc = ctx.createOscillator();
-  analyser = ctx.createAnalyser();
-  osc.type = "sine";
-  osc.frequency.value = frequency;
-  osc.connect(analyser);
-  analyser.connect(ctx.destination);
-  osc.start();
+<div id="ui">
+  <label>Caracteres ASCII</label>
+  <textarea id="chars"> .:-=+*#%@</textarea>
 
-  startBtn.disabled = true;
-  startBtn.textContent = "Sonido activo 🔈";
+  <label>Resolución</label>
+  <input type="range" id="res" min="4" max="20" value="8">
 
-  // cámara
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-    processVideo();
-  } catch (err) {
-    console.error("Error al acceder a la cámara:", err);
-  }
+  <label>Contraste</label>
+  <input type="range" id="contrast" min="1" max="10" value="5">
 
-  visualize();
-});
+  <label>Brillo</label>
+  <input type="range" id="bright" min="0" max="255" value="120">
 
-function processVideo(){
-  const tempCanvas = document.createElement("canvas");
-  const tempCtx = tempCanvas.getContext("2d");
-  tempCanvas.width = 100;
-  tempCanvas.height = 75;
+  <label>Invertir</label>
+  <input type="checkbox" id="invert">
 
-  function analyzeFrame(){
-    tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-    const frame = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-    const pixels = frame.data;
-    let totalBrightness = 0;
-    for(let i=0; i<pixels.length; i+=4){
-      const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
-      totalBrightness += (r + g + b) / 3;
-    }
-    const avgBrightness = totalBrightness / (pixels.length / 4);
-    frequency = 100 + (avgBrightness / 255) * 900;
-    if (osc) osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-    freqDisplay.textContent = frequency.toFixed(1);
-    requestAnimationFrame(analyzeFrame);
-  }
-  analyzeFrame();
+</div>
+
+<script>
+
+let cam;
+let videoScale = 8;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
+
+  cam = createCapture(VIDEO);
+  cam.size(320, 240);
+  cam.hide();
+
+  textFont('monospace');
+  textSize(10);
 }
 
-// visualizador
-function visualize(){
-  analyser.fftSize = 1024;
-  dataArray = new Uint8Array(analyser.fftSize);
-  function draw(){
-    requestAnimationFrame(draw);
-    analyser.getByteTimeDomainData(dataArray);
-    c.fillStyle = "#111";
-    c.fillRect(0,0,canvas.width,canvas.height);
-    c.beginPath();
-    let sliceWidth = canvas.width / dataArray.length;
-    let x = 0;
-    for(let i=0; i<dataArray.length; i++){
-      let v = dataArray[i] / 128.0;
-      let y = v * canvas.height/2;
-      if(i===0) c.moveTo(x,y);
-      else c.lineTo(x,y);
-      x += sliceWidth;
+function draw() {
+  background(0);
+
+  let chars = document.getElementById("chars").value;
+  let res = parseInt(document.getElementById("res").value);
+  let contrast = parseFloat(document.getElementById("contrast").value);
+  let bright = parseInt(document.getElementById("bright").value);
+  let invert = document.getElementById("invert").checked;
+
+  let w = cam.width;
+  let h = cam.height;
+
+  cam.loadPixels();
+
+  let cellW = width / w * res;
+  let cellH = height / h * res;
+
+  for (let y = 0; y < h; y += 2) {
+    for (let x = 0; x < w; x += 2) {
+
+      let i = (x + y * w) * 4;
+
+      let r = cam.pixels[i];
+      let g = cam.pixels[i + 1];
+      let b = cam.pixels[i + 2];
+
+      // luminancia
+      let avg = (r + g + b) / 3;
+
+      avg = (avg - bright) * contrast;
+      avg = constrain(avg, 0, 255);
+
+      let index = floor(map(avg, 0, 255, 0, chars.length - 1));
+
+      if (invert) index = (chars.length - 1) - index;
+
+      let c = chars.charAt(index);
+
+      fill(0, 255, 100);
+      text(c, x * cellW, y * cellH);
     }
-    c.strokeStyle = "#0ff";
-    c.lineWidth = 2;
-    c.stroke();
   }
-  draw();
 }
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
 </script>
-  </body>
+
+</body>
 </html>
