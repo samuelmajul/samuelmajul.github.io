@@ -1,149 +1,113 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>CAMERA / SIGNAL SYSTEM</title>
+  <meta charset="utf-8" />
+  <title>Ruido Fantasma</title>
 
-<style>
-body {
-  margin: 0;
-  background: black;
-  overflow: hidden;
-  font-family: monospace;
-}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
 
-canvas { display:block; }
-
-#ui {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 10;
-  color: white;
-  background: rgba(0,0,0,0.4);
-  padding: 10px;
-  border: 1px solid #222;
-}
-
-label { display:block; margin:6px 0; }
-</style>
+  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
 </head>
 
 <body>
-
-<div id="ui">
-  <label>signal distortion
-    <input id="dist" type="range" min="0" max="1" step="0.01" value="0.2">
-  </label>
-
-  <label>scan intensity
-    <input id="scan" type="range" min="0" max="1" step="0.01" value="0.3">
-  </label>
-
-  <label>color drift
-    <input id="color" type="range" min="0" max="2" step="0.01" value="1">
-  </label>
-
-  <label>breathing
-    <input id="pulse" type="range" min="0" max="1" step="0.01" value="0.5">
-  </label>
-</div>
-
-<video id="video" autoplay playsinline></video>
-<canvas id="c"></canvas>
-
 <script>
-const video = document.getElementById("video");
-const c = document.getElementById("c");
-const ctx = c.getContext("2d");
 
-c.width = 640;
-c.height = 480;
+let video;
+let handpose;
+let predictions = [];
 
-// camera
-navigator.mediaDevices.getUserMedia({ video: true })
-.then(stream => video.srcObject = stream);
+let osc;
+let filter;
 
-// UI
-const dist = document.getElementById("dist");
-const scan = document.getElementById("scan");
-const color = document.getElementById("color");
-const pulse = document.getElementById("pulse");
+let noiseLevel = 0;
+let freq = 220;
 
-// buffer canvas (clave para performance)
-const buffer = document.createElement("canvas");
-const bctx = buffer.getContext("2d");
-buffer.width = c.width;
-buffer.height = c.height;
+function setup() {
+  createCanvas(640, 480);
 
-let t = 0;
+  video = createCapture(VIDEO);
+  video.size(width, height);
+  video.hide();
 
-function loop() {
-  requestAnimationFrame(loop);
-  t += 0.01;
+  handpose = ml5.handpose(video, () => {
+    console.log("modelo listo");
+  });
 
-  const d = +dist.value;
-  const s = +scan.value;
-  const col = +color.value;
-  const p = +pulse.value;
+  handpose.on("predict", results => {
+    predictions = results;
+  });
 
-  // “auto exposure vibe”
-  bctx.drawImage(video, 0, 0, c.width, c.height);
+  osc = new p5.Oscillator("sawtooth");
+  osc.start();
+  osc.amp(0.2);
 
-  let frame = bctx.getImageData(0, 0, c.width, c.height);
-  let data = frame.data;
-
-  ctx.clearRect(0,0,c.width,c.height);
-
-  let pulseWave = 1 + Math.sin(t * 3) * p * 0.3;
-
-  for (let y = 0; y < c.height; y += 3) {
-
-    // scanlines
-    let scanBoost = Math.sin(y * 0.1 + t * 10) * s * 10;
-
-    for (let x = 0; x < c.width; x += 3) {
-
-      let i = (y * c.width + x) * 4;
-
-      let r = data[i];
-      let g = data[i+1];
-      let b = data[i+2];
-
-      // color drift orgánico
-      let drift = Math.sin((x + y) * 0.01 + t);
-
-      r *= col + drift * 0.2;
-      g *= col + Math.sin(t + x * 0.01) * 0.2;
-      b *= col + Math.cos(t + y * 0.01) * 0.2;
-
-      // glitch por bandas
-      let glitchX = Math.sin(y * 0.05 + t * 5) * d * 20;
-
-      let size = 3 * pulseWave;
-
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-
-      ctx.fillRect(
-        x + glitchX,
-        y + scanBoost,
-        size,
-        size
-      );
-    }
-  }
-
-  // scan overlay
-  if (s > 0) {
-    ctx.fillStyle = `rgba(0,0,0,${0.05 * s})`;
-    for (let i = 0; i < c.height; i += 2) {
-      ctx.fillRect(0, i, c.width, 1);
-    }
-  }
+  filter = new p5.LowPass();
+  osc.disconnect();
+  osc.connect(filter);
 }
 
-loop();
-</script>
+function draw() {
+  background(0);
 
+  image(video, 0, 0);
+
+  let hands = predictions;
+
+  if (hands.length >= 2) {
+
+    let handA = hands[0].landmarks;
+    let handB = hands[1].landmarks;
+
+    // pulgar de cada mano como referencia
+    let x1 = handA[8][0];
+    let y1 = handA[8][1];
+
+    let x2 = handB[8][0];
+    let y2 = handB[8][1];
+
+    // distancia entre manos = caos
+    let d = dist(x1, y1, x2, y2);
+
+    noiseLevel = map(d, 0, width, 2000, 100);
+    freq = map(y1, 0, height, 80, 800);
+
+    // glitch mode si están muy cerca
+    if (d < 80) {
+      freq *= random(0.5, 2);
+      noiseLevel = 2000;
+    }
+
+    osc.freq(freq);
+    filter.freq(noiseLevel);
+
+    // dibujito energético
+    stroke(0, 255, 180);
+    line(x1, y1, x2, y2);
+    noStroke();
+    fill(255);
+    ellipse(x1, y1, 10);
+    ellipse(x2, y2, 10);
+
+  } else if (hands.length == 1) {
+    let hand = hands[0].landmarks;
+
+    let x = hand[8][0];
+    let y = hand[8][1];
+
+    freq = map(y, 0, height, 100, 1000);
+    osc.freq(freq);
+
+    filter.freq(1000);
+
+    fill(255, 100);
+    ellipse(x, y, 20);
+  }
+
+  fill(255);
+  text("RUÍDO FANTASMA V0.1", 10, 20);
+}
+
+</script>
 </body>
 </html>
