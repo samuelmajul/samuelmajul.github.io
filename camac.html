@@ -1,113 +1,157 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <title>Ruido Fantasma</title>
+<meta charset="UTF-8">
+<title>ASCII CAM</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+    font-family: monospace;
+  }
 
-  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+  video {
+    display: none;
+  }
+
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  #ui {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 260px;
+    padding: 10px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid #0f0;
+    color: #0f0;
+  }
+
+  textarea, input {
+    width: 100%;
+    background: black;
+    color: #0f0;
+    border: 1px solid #0f0;
+    font-family: monospace;
+  }
+
+  label {
+    font-size: 12px;
+  }
+</style>
 </head>
 
 <body>
+
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas"></canvas>
+
+<div id="ui">
+  <label>ASCII chars</label>
+  <textarea id="chars"> .:-=+*#%@</textarea>
+
+  <label>Resolución</label>
+  <input id="res" type="range" min="4" max="24" value="10">
+
+  <label>Contraste</label>
+  <input id="contrast" type="range" min="1" max="10" value="4">
+
+  <label>Brillo</label>
+  <input id="bright" type="range" min="0" max="255" value="100">
+
+  <label>Invertir</label>
+  <input id="invert" type="checkbox">
+</div>
+
 <script>
 
-let video;
-let handpose;
-let predictions = [];
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-let osc;
-let filter;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-let noiseLevel = 0;
-let freq = 220;
+let vw = 320;
+let vh = 240;
 
-function setup() {
-  createCanvas(640, 480);
+let off = document.createElement("canvas");
+let offCtx = off.getContext("2d");
 
-  video = createCapture(VIDEO);
-  video.size(width, height);
-  video.hide();
+off.width = vw;
+off.height = vh;
 
-  handpose = ml5.handpose(video, () => {
-    console.log("modelo listo");
-  });
-
-  handpose.on("predict", results => {
-    predictions = results;
-  });
-
-  osc = new p5.Oscillator("sawtooth");
-  osc.start();
-  osc.amp(0.2);
-
-  filter = new p5.LowPass();
-  osc.disconnect();
-  osc.connect(filter);
-}
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+  video.srcObject = stream;
+})
+.catch(err => {
+  alert("no camera access");
+});
 
 function draw() {
-  background(0);
 
-  image(video, 0, 0);
+  let chars = document.getElementById("chars").value;
+  let res = parseInt(document.getElementById("res").value);
+  let contrast = parseFloat(document.getElementById("contrast").value);
+  let bright = parseInt(document.getElementById("bright").value);
+  let invert = document.getElementById("invert").checked;
 
-  let hands = predictions;
+  offCtx.drawImage(video, 0, 0, vw, vh);
 
-  if (hands.length >= 2) {
+  let img = offCtx.getImageData(0, 0, vw, vh);
+  let data = img.data;
 
-    let handA = hands[0].landmarks;
-    let handB = hands[1].landmarks;
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // pulgar de cada mano como referencia
-    let x1 = handA[8][0];
-    let y1 = handA[8][1];
+  ctx.font = (res) + "px monospace";
+  ctx.fillStyle = "#00ff66";
 
-    let x2 = handB[8][0];
-    let y2 = handB[8][1];
+  let stepX = canvas.width / vw;
+  let stepY = canvas.height / vh;
 
-    // distancia entre manos = caos
-    let d = dist(x1, y1, x2, y2);
+  for (let y = 0; y < vh; y += 2) {
+    for (let x = 0; x < vw; x += 2) {
 
-    noiseLevel = map(d, 0, width, 2000, 100);
-    freq = map(y1, 0, height, 80, 800);
+      let i = (x + y * vw) * 4;
 
-    // glitch mode si están muy cerca
-    if (d < 80) {
-      freq *= random(0.5, 2);
-      noiseLevel = 2000;
+      let r = data[i];
+      let g = data[i + 1];
+      let b = data[i + 2];
+
+      let avg = (r + g + b) / 3;
+
+      avg = (avg - bright) * contrast;
+      avg = Math.max(0, Math.min(255, avg));
+
+      let index = Math.floor((avg / 255) * (chars.length - 1));
+
+      if (invert) index = chars.length - 1 - index;
+
+      let c = chars.charAt(index);
+
+      ctx.fillText(c, x * stepX, y * stepY);
     }
-
-    osc.freq(freq);
-    filter.freq(noiseLevel);
-
-    // dibujito energético
-    stroke(0, 255, 180);
-    line(x1, y1, x2, y2);
-    noStroke();
-    fill(255);
-    ellipse(x1, y1, 10);
-    ellipse(x2, y2, 10);
-
-  } else if (hands.length == 1) {
-    let hand = hands[0].landmarks;
-
-    let x = hand[8][0];
-    let y = hand[8][1];
-
-    freq = map(y, 0, height, 100, 1000);
-    osc.freq(freq);
-
-    filter.freq(1000);
-
-    fill(255, 100);
-    ellipse(x, y, 20);
   }
 
-  fill(255);
-  text("RUÍDO FANTASMA V0.1", 10, 20);
+  requestAnimationFrame(draw);
 }
 
+video.addEventListener("loadeddata", draw);
+
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
 </script>
+
 </body>
 </html>
