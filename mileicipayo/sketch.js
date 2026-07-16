@@ -1,6 +1,14 @@
 // noprotect
 p5.disableFriendlyErrors = true;
 
+// --- SOLUCIÓN DE INICIO INMEDIATO ---
+// Forzamos WebGL a nivel global para que ml5.js ni intente usar WebGPU en preload()
+if (typeof window !== "undefined" && window.ml5 && window.ml5.tf) {
+  window.ml5.tf.setBackend('webgl')
+    .then(() => console.log("WebGL forzado con éxito desde el inicio"))
+    .catch(() => window.ml5.tf.setBackend('cpu'));
+}
+
 let video;
 let handPose;
 let hands = [];
@@ -18,6 +26,7 @@ let isFist = false;
 let modelLoaded = false;
 
 function preload() {
+  // Ahora handPose cargará directamente con WebGL sin dar errores ni vueltas
   handPose = ml5.handPose({ maxHands: 1, flipped: true }, () => {
     console.log("¡Modelo de mano cargado exitosamente!");
     modelLoaded = true;
@@ -25,15 +34,6 @@ function preload() {
 }
 
 function setup() {
-  // Solución para evitar WebGPU en móviles
-  if (window.ml5 && window.ml5.tf) {
-    window.ml5.tf.setBackend('webgl')
-      .then(() => console.log("Backend WebGL inicializado"))
-      .catch(() => {
-        window.ml5.tf.setBackend('cpu');
-      });
-  }
-
   // Proporción 9:16 para celulares
   let h = windowHeight;
   let w = (windowHeight * 9) / 16;
@@ -54,7 +54,7 @@ function setup() {
   // Inicializar partículas
   particles = Array.from({ length: maxParticles }, () => new Particle());
 
-  // Generamos los puntos del texto (ahora ultra rápido)
+  // Generamos los puntos del texto (ultra rápido con pasos optimizados)
   generateVectorTextPoints();
 }
 
@@ -150,7 +150,7 @@ class Particle {
     
     this.isWhite = random(1) > 0.45;
     this.alpha = random(90, 170); 
-    this.size = random(8.0, 15.0); // Copos grandes para rellenar rápido el texto sin saturar CPU
+    this.size = random(8.0, 15.0); // Copos grandes para rellenar rápido el texto
     
     this.target = null;
   }
@@ -165,7 +165,7 @@ class Particle {
 
   update() {
     if (this.target) {
-      // 1. COMPORTAMIENTO DE TEXTO (Atracción rápida y precisa)
+      // 1. COMPORTAMIENTO DE TEXTO
       let desired = p5.Vector.sub(this.target, this.pos);
       let d = desired.mag();
       desired.normalize();
@@ -257,7 +257,7 @@ class Particle {
   }
 }
 
-// Generador de letras denso y definido
+// Generador de letras
 function generateVectorTextPoints() {
   textPoints = [];
   
@@ -336,9 +336,8 @@ function generateVectorTextPoints() {
   textPoints.sort(() => random() - 0.5);
 }
 
-// OPTIMIZACIÓN EXTREMA: Pasos fijos para evitar que se tilde al iniciar
+// Pasos fijos optimizados (8 por trazo)
 function drawSegment(x1, y1, x2, y2) {
-  // En lugar de calcular dinámicamente según la distancia larga, usamos un paso fijo ultra liviano (8 puntos por trazo)
   let steps = 8; 
   
   Array.from({ length: steps + 1 }).forEach((_, i) => {
