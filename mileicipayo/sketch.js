@@ -5,9 +5,9 @@ let video;
 let handPose;
 let hands = [];
 
-// 450 partículas grandes: ideal para rendimiento y relleno visual
+// 450 partículas grandes: súper liviano
 let particles = [];
-let maxParticles = 1500; 
+let maxParticles = 450; 
 
 let textPoints = [];
 let handX = 0;
@@ -54,7 +54,7 @@ function setup() {
   // Inicializar partículas
   particles = Array.from({ length: maxParticles }, () => new Particle());
 
-  // Generamos el esqueleto denso de la frase
+  // Generamos los puntos del texto (ahora ultra rápido)
   generateVectorTextPoints();
 }
 
@@ -92,7 +92,6 @@ function draw() {
   let tLen = textPoints.length;
   particles.forEach((p, index) => {
     if (isFist && tLen > 0) {
-      // Repartimos las partículas a lo largo de todos los puntos de las letras de forma homogénea
       let target = textPoints[index % tLen];
       p.setTarget(target.x, target.y);
     } else {
@@ -150,8 +149,8 @@ class Particle {
     this.noiseSeed = random(1000);
     
     this.isWhite = random(1) > 0.45;
-    this.alpha = random(80, 160); 
-    this.size = random(7.0, 14.0); // Tamaño generoso para cubrir excelente las letras
+    this.alpha = random(90, 170); 
+    this.size = random(8.0, 15.0); // Copos grandes para rellenar rápido el texto sin saturar CPU
     
     this.target = null;
   }
@@ -174,15 +173,14 @@ class Particle {
       if (d < 25) {
         let m = map(d, 0, 25, 0, this.maxSpeed);
         desired.mult(m);
-        // Sutil ondulación de humo para mantenerlas vivas pero legibles
-        let smokeWave = sin(this.pos.x * 0.05 + frameCount * 0.1) * 1.2;
+        let smokeWave = sin(this.pos.x * 0.05 + frameCount * 0.1) * 1.0;
         desired.add(smokeWave, smokeWave);
       } else {
         desired.mult(this.maxSpeed);
       }
       
       let steer = p5.Vector.sub(desired, this.vel);
-      steer.limit(this.maxForce * 2.2); // Más fuerza de llegada para que no queden dispersas
+      steer.limit(this.maxForce * 2.2); 
       this.applyForce(steer);
       
     } else {
@@ -338,10 +336,10 @@ function generateVectorTextPoints() {
   textPoints.sort(() => random() - 0.5);
 }
 
-// Subimos la cantidad de puntos de la estructura para que sea ultra nítida
+// OPTIMIZACIÓN EXTREMA: Pasos fijos para evitar que se tilde al iniciar
 function drawSegment(x1, y1, x2, y2) {
-  let d = dist(x1, y1, x2, y2);
-  let steps = Math.floor(d * 2.2); // Más resolución en el dibujo vectorial de letras
+  // En lugar de calcular dinámicamente según la distancia larga, usamos un paso fijo ultra liviano (8 puntos por trazo)
+  let steps = 8; 
   
   Array.from({ length: steps + 1 }).forEach((_, i) => {
     let t = i / steps;
