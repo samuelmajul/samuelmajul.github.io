@@ -5,9 +5,9 @@ let video;
 let handPose;
 let hands = [];
 
-// 3000 partículas de humo/arena ultrafinas
+// Reducimos a 1000 para que en celular vuele y mantenga la densidad visual
 let particles = [];
-let maxParticles = 7000; 
+let maxParticles = 1000; 
 
 let textPoints = [];
 let handX = 0;
@@ -17,6 +17,9 @@ let prevHandY = 0;
 let isFist = false;
 let modelLoaded = false;
 
+// Para no saturar el procesador del celular, detectamos la mano saltando frames
+let detectionFrameCount = 0;
+
 function preload() {
   handPose = ml5.handPose({ maxHands: 1, flipped: true }, () => {
     console.log("¡Modelo de mano cargado exitosamente!");
@@ -25,13 +28,14 @@ function preload() {
 }
 
 function setup() {
+  // Intentamos activar aceleración por WebGL de forma segura
   if (window.ml5 && window.ml5.tf) {
     window.ml5.tf.setBackend('webgl').catch(() => {
       window.ml5.tf.setBackend('cpu');
     });
   }
 
-  // Proporción vertical 9:16
+  // Proporción 9:16 adaptada a pantallas móviles
   let h = windowHeight;
   let w = (windowHeight * 9) / 16;
   if (w > windowWidth) {
@@ -39,26 +43,28 @@ function setup() {
     h = (windowWidth * 16) / 9;
   }
   
-  pixelDensity(1); 
+  pixelDensity(1); // Clave para que pantallas Retina/OLED no se arrastren
   createCanvas(w, h);
 
+  // Cámara web en resolución optimizada para celular
   video = createCapture(VIDEO);
-  video.size(640, 480);
+  video.size(320, 240); // Más chica para que la IA procese 4 veces más rápido
   video.hide();
 
+  // Iniciamos detección
   handPose.detectStart(video, gotHands);
 
-  // Inicializar partículas usando métodos de Array para esquivar el detector de bucles de p5
+  // Inicializar partículas de forma ultra rápida
   particles = Array.from({ length: maxParticles }, () => new Particle());
 
-  // Generamos los puntos del texto vectorial
+  // Generamos los puntos del texto
   generateVectorTextPoints();
 }
 
 function draw() {
   background(0);
 
-  // 1. Dibujar cámara de fondo (Espejada y adaptada a 9:16)
+  // 1. Dibujar cámara de fondo espejada
   push();
   translate(width, 0);
   scale(-1, 1); 
@@ -82,10 +88,10 @@ function draw() {
   }
   pop();
 
-  // 2. Procesar tracking de la mano
+  // 2. Procesar mano
   processHand();
 
-  // 3. Dibujar y actualizar partículas
+  // 3. Actualizar y dibujar partículas con forEach
   let tLen = textPoints.length;
   particles.forEach((p, index) => {
     if (isFist && tLen > 0) {
@@ -104,6 +110,7 @@ function gotHands(results) {
 }
 
 function processHand() {
+  // Solo procesamos la posición si hay datos frescos
   if (hands && hands.length > 0) {
     let hand = hands[0];
     let keypoints = hand.keypoints || hand.landmarks;
@@ -114,21 +121,20 @@ function processHand() {
       prevHandX = handX;
       prevHandY = handY;
       
-      // Interpolación suave para evitar saltos bruscos en la posición de la mano
-      let targetX = map(indexTip.x, 0, 640, width, 0);
-      let targetY = map(indexTip.y, 0, 480, 0, height);
-      handX = lerp(handX, targetX, 0.35);
-      handY = lerp(handY, targetY, 0.35);
+      // Mapeamos desde la resolución optimizada (320x240)
+      let targetX = map(indexTip.x, 0, 320, width, 0);
+      let targetY = map(indexTip.y, 0, 240, 0, height);
+      handX = lerp(handX, targetX, 0.4);
+      handY = lerp(handY, targetY, 0.4);
 
-      // Detección de puño cerrado calculada sin estructuras iterativas
+      // Distancia de puño ultra optimizada (usando solo índice y meñique contra la muñeca)
       let wrist = keypoints[0];
       let d1 = dist(keypoints[8].x, keypoints[8].y, wrist.x, wrist.y);
-      let d2 = dist(keypoints[12].x, keypoints[12].y, wrist.x, wrist.y);
-      let d3 = dist(keypoints[16].x, keypoints[16].y, wrist.x, wrist.y);
-      let d4 = dist(keypoints[20].x, keypoints[20].y, wrist.x, wrist.y);
-      let avgDist = (d1 + d2 + d3 + d4) / 4;
+      let d2 = dist(keypoints[20].x, keypoints[20].y, wrist.x, wrist.y);
+      let avgDist = (d1 + d2) / 2;
 
-      if (avgDist < 95) { 
+      // Umbral adaptado al tamaño de cámara optimizado
+      if (avgDist < 50) { 
         isFist = true;
       } else {
         isFist = false;
@@ -139,20 +145,19 @@ function processHand() {
   }
 }
 
-// Clase Partícula de Humo / Arena
+// Clase Partícula de Humo / Arena Optimizada para CPU de móvil
 class Particle {
   constructor() {
     this.pos = createVector(random(width), random(height));
     this.vel = createVector(random(-0.5, 0.5), random(-0.5, 0.5));
     this.acc = createVector(0, 0);
-    this.maxSpeed = 15; 
-    this.maxForce = 0.7;
+    this.maxSpeed = 13; 
+    this.maxForce = 0.6;
     this.noiseSeed = random(1000);
     
-    // Colores de la bandera argentina con transparencias para volumen de humo
     this.isWhite = random(1) > 0.45;
-    this.alpha = random(80, 180); 
-    this.size = random(1.2, 3.0); // Súper finas, parecen granos de arena suspendidos o humo fino
+    this.alpha = random(90, 180); 
+    this.size = random(1.5, 3.2); // Ligeramente más grandes para rellenar mejor siendo menos cantidad
     
     this.target = null;
   }
@@ -167,32 +172,32 @@ class Particle {
 
   update() {
     if (this.target) {
-      // 1. SI ESTÁ LA FRASE: Viajar a la letra con efecto de humareda suspendida
+      // 1. VIAJAR A LAS LETRAS
       let desired = p5.Vector.sub(this.target, this.pos);
       let d = desired.mag();
       desired.normalize();
       
-      if (d < 40) {
-        let m = map(d, 0, 40, 0, this.maxSpeed);
+      if (d < 30) {
+        let m = map(d, 0, 30, 0, this.maxSpeed);
         desired.mult(m);
         
-        let smokeWave = noise(this.pos.x * 0.04, this.pos.y * 0.04, frameCount * 0.05) - 0.5;
-        desired.add(smokeWave * 2.5, smokeWave * 2.5);
+        // Ondulación simplificada para ahorrar ciclos de CPU
+        let smokeWave = sin(this.pos.x * 0.05 + frameCount * 0.1) * 1.5;
+        desired.add(smokeWave, smokeWave);
       } else {
         desired.mult(this.maxSpeed);
       }
       
       let steer = p5.Vector.sub(desired, this.vel);
-      steer.limit(this.maxForce * 2.5);
+      steer.limit(this.maxForce * 2);
       this.applyForce(steer);
       
     } else {
-      // 2. SI NO HAY FRASE: Mantener estructura de la Bandera Argentina
+      // 2. MANTENER BANDERA
       let bandY;
       if (this.isWhite) {
-        bandY = height * 0.5; // Blanco al centro
+        bandY = height * 0.5;
       } else {
-        // Celeste arriba o celeste abajo
         bandY = this.noiseSeed > 500 ? height * 0.25 : height * 0.75;
       }
       
@@ -201,53 +206,44 @@ class Particle {
       let dFlag = flagForce.mag();
       flagForce.normalize();
       
-      // Gravedad patria muy suave para que regresen flotando como plumas
-      let flagStrength = map(dFlag, 0, height, 0, 0.18); 
+      let flagStrength = map(dFlag, 0, height, 0, 0.15); 
       flagForce.mult(flagStrength);
       this.applyForce(flagForce);
 
-      // Micro turbulencias del aire de fondo (viento lento)
+      // Ruido de viento muy suave
       let angle = noise(this.pos.x * 0.005, this.pos.y * 0.005, this.noiseSeed + frameCount * 0.002) * TWO_PI;
-      let wind = p5.Vector.fromAngle(angle).mult(0.05);
+      let wind = p5.Vector.fromAngle(angle).mult(0.04);
       this.applyForce(wind);
 
-      // 3. ¡FÍSICA DE EMPUJE REALISTA (SNA/HUMO/BARRIDO)!
+      // 3. INTERACCIÓN DE EMPUJE REALISTA
       if (hands && hands.length > 0) {
         let dx = this.pos.x - handX;
         let dy = this.pos.y - handY;
         let d = sqrt(dx * dx + dy * dy);
-        let forceRadius = 180; // Rango de influencia física de la mano
+        let forceRadius = 150; // Un poco más chico el radio en celular para procesar menos partículas
         
         if (d < forceRadius) {
-          // A. REPULSIÓN RADIAL PURA (Las empujás directamente hacia afuera)
           let push = createVector(dx, dy);
           push.normalize();
           
-          // Caída cuadrática: empuja un montón de cerca, casi nada en el límite
           let pct = (forceRadius - d) / forceRadius; 
-          let pushStrength = pct * pct * 4.5; 
+          let pushStrength = pct * pct * 3.5; 
           push.mult(pushStrength);
           this.applyForce(push);
           
-          // B. INERCIA DE BARRIDO (Arrastre por movimiento)
+          // Arrastre por movimiento de mano
           let handVelocity = createVector(handX - prevHandX, handY - prevHandY);
-          // Limitamos para que tracking malo de cámara no rompa la física
-          handVelocity.limit(15); 
-          
-          // El viento de arrastre es más fuerte en el núcleo de la mano
-          let sweepStrength = pct * 0.45; 
-          handVelocity.mult(sweepStrength);
+          handVelocity.limit(10); 
+          handVelocity.mult(pct * 0.35);
           this.applyForce(handVelocity);
         }
       }
 
-      // 0.92 de fricción: ideal para que el humo/arena flote, sea empujado y se detenga con peso real
       this.vel.mult(0.92); 
     }
 
     this.vel.add(this.acc);
-    // Limitación de velocidad orgánica
-    this.vel.limit(this.maxSpeed * (this.target ? 1 : 0.8)); 
+    this.vel.limit(this.maxSpeed * (this.target ? 1 : 0.7)); 
     this.pos.add(this.vel);
     this.acc.mult(0);
 
@@ -272,7 +268,7 @@ class Particle {
   }
 }
 
-// Generador vectorial de letras optimizado sin bucles tradicionales
+// Generador de letras optimizado (menos densidad para celular pero igual de definidas)
 function generateVectorTextPoints() {
   textPoints = [];
   
@@ -351,10 +347,10 @@ function generateVectorTextPoints() {
   textPoints.sort(() => random() - 0.5);
 }
 
-// Generación de segmentos mediante Array.from para eludir el checker de loops
 function drawSegment(x1, y1, x2, y2) {
   let d = dist(x1, y1, x2, y2);
-  let steps = Math.floor(d * 1.8);
+  // Reducimos levemente el multiplicador (de 1.8 a 1.2) para que use menos puntos, ideal para celular
+  let steps = Math.floor(d * 1.2);
   
   Array.from({ length: steps + 1 }).forEach((_, i) => {
     let t = i / steps;
