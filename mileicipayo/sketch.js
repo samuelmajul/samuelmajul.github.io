@@ -1,3 +1,107 @@
+// noprotect
+p5.disableFriendlyErrors = true;
+
+let video;
+let handPose;
+let hands = [];
+
+// 450 partículas grandes: ideal para rendimiento y relleno visual
+let particles = [];
+let maxParticles = 1500; 
+
+let textPoints = [];
+let handX = 0;
+let handY = 0;
+let prevHandX = 0;
+let prevHandY = 0;
+let isFist = false;
+let modelLoaded = false;
+
+function preload() {
+  handPose = ml5.handPose({ maxHands: 1, flipped: true }, () => {
+    console.log("¡Modelo de mano cargado exitosamente!");
+    modelLoaded = true;
+  });
+}
+
+function setup() {
+  // Solución para evitar WebGPU en móviles
+  if (window.ml5 && window.ml5.tf) {
+    window.ml5.tf.setBackend('webgl')
+      .then(() => console.log("Backend WebGL inicializado"))
+      .catch(() => {
+        window.ml5.tf.setBackend('cpu');
+      });
+  }
+
+  // Proporción 9:16 para celulares
+  let h = windowHeight;
+  let w = (windowHeight * 9) / 16;
+  if (w > windowWidth) {
+    w = windowWidth;
+    h = (windowWidth * 16) / 9;
+  }
+  
+  pixelDensity(1); 
+  createCanvas(w, h);
+
+  video = createCapture(VIDEO);
+  video.size(320, 240);
+  video.hide();
+
+  handPose.detectStart(video, gotHands);
+
+  // Inicializar partículas
+  particles = Array.from({ length: maxParticles }, () => new Particle());
+
+  // Generamos el esqueleto denso de la frase
+  generateVectorTextPoints();
+}
+
+function draw() {
+  background(0);
+
+  // 1. Render de cámara espejado
+  push();
+  translate(width, 0);
+  scale(-1, 1); 
+  
+  let aspectVideo = video.width / video.height;
+  let aspectCanvas = width / height;
+  let drawW, drawH, sx, sy;
+  
+  if (aspectVideo > aspectCanvas) {
+    drawH = height;
+    drawW = height * aspectVideo;
+    sx = (drawW - width) / 2;
+    sy = 0;
+    image(video, -sx, sy, drawW, drawH);
+  } else {
+    drawW = width;
+    drawH = width / aspectVideo;
+    sx = 0;
+    sy = (drawH - height) / 2;
+    image(video, sx, -sy, drawW, drawH);
+  }
+  pop();
+
+  // 2. Procesamiento de tracking
+  processHand();
+
+  // 3. Dibujar y actualizar partículas
+  let tLen = textPoints.length;
+  particles.forEach((p, index) => {
+    if (isFist && tLen > 0) {
+      // Repartimos las partículas a lo largo de todos los puntos de las letras de forma homogénea
+      let target = textPoints[index % tLen];
+      p.setTarget(target.x, target.y);
+    } else {
+      p.clearTarget();
+    }
+    p.update();
+    p.show();
+  });
+}
 
 function gotHands(results) {
   hands = results;
