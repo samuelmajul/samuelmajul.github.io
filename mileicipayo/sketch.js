@@ -1,116 +1,9 @@
-// noprotect
-p5.disableFriendlyErrors = true;
-
-let video;
-let handPose;
-let hands = [];
-
-// Reducimos a 1000 para que en celular vuele y mantenga la densidad visual
-let particles = [];
-let maxParticles = 6000; 
-
-let textPoints = [];
-let handX = 0;
-let handY = 0;
-let prevHandX = 0;
-let prevHandY = 0;
-let isFist = false;
-let modelLoaded = false;
-
-// Para no saturar el procesador del celular, detectamos la mano saltando frames
-let detectionFrameCount = 0;
-
-function preload() {
-  handPose = ml5.handPose({ maxHands: 1, flipped: true }, () => {
-    console.log("¡Modelo de mano cargado exitosamente!");
-    modelLoaded = true;
-  });
-}
-
-function setup() {
-  // Intentamos activar aceleración por WebGL de forma segura
-  if (window.ml5 && window.ml5.tf) {
-    window.ml5.tf.setBackend('webgl').catch(() => {
-      window.ml5.tf.setBackend('cpu');
-    });
-  }
-
-  // Proporción 9:16 adaptada a pantallas móviles
-  let h = windowHeight;
-  let w = (windowHeight * 9) / 16;
-  if (w > windowWidth) {
-    w = windowWidth;
-    h = (windowWidth * 16) / 9;
-  }
-  
-  pixelDensity(1); // Clave para que pantallas Retina/OLED no se arrastren
-  createCanvas(w, h);
-
-  // Cámara web en resolución optimizada para celular
-  video = createCapture(VIDEO);
-  video.size(320, 240); // Más chica para que la IA procese 4 veces más rápido
-  video.hide();
-
-  // Iniciamos detección
-  handPose.detectStart(video, gotHands);
-
-  // Inicializar partículas de forma ultra rápida
-  particles = Array.from({ length: maxParticles }, () => new Particle());
-
-  // Generamos los puntos del texto
-  generateVectorTextPoints();
-}
-
-function draw() {
-  background(0);
-
-  // 1. Dibujar cámara de fondo espejada
-  push();
-  translate(width, 0);
-  scale(-1, 1); 
-  
-  let aspectVideo = video.width / video.height;
-  let aspectCanvas = width / height;
-  let drawW, drawH, sx, sy;
-  
-  if (aspectVideo > aspectCanvas) {
-    drawH = height;
-    drawW = height * aspectVideo;
-    sx = (drawW - width) / 2;
-    sy = 0;
-    image(video, -sx, sy, drawW, drawH);
-  } else {
-    drawW = width;
-    drawH = width / aspectVideo;
-    sx = 0;
-    sy = (drawH - height) / 2;
-    image(video, sx, -sy, drawW, drawH);
-  }
-  pop();
-
-  // 2. Procesar mano
-  processHand();
-
-  // 3. Actualizar y dibujar partículas con forEach
-  let tLen = textPoints.length;
-  particles.forEach((p, index) => {
-    if (isFist && tLen > 0) {
-      let target = textPoints[index % tLen];
-      p.setTarget(target.x, target.y);
-    } else {
-      p.clearTarget();
-    }
-    p.update();
-    p.show();
-  });
-}
 
 function gotHands(results) {
   hands = results;
 }
 
 function processHand() {
-  // Solo procesamos la posición si hay datos frescos
   if (hands && hands.length > 0) {
     let hand = hands[0];
     let keypoints = hand.keypoints || hand.landmarks;
@@ -121,19 +14,16 @@ function processHand() {
       prevHandX = handX;
       prevHandY = handY;
       
-      // Mapeamos desde la resolución optimizada (320x240)
       let targetX = map(indexTip.x, 0, 320, width, 0);
       let targetY = map(indexTip.y, 0, 240, 0, height);
       handX = lerp(handX, targetX, 0.4);
       handY = lerp(handY, targetY, 0.4);
 
-      // Distancia de puño ultra optimizada (usando solo índice y meñique contra la muñeca)
       let wrist = keypoints[0];
       let d1 = dist(keypoints[8].x, keypoints[8].y, wrist.x, wrist.y);
       let d2 = dist(keypoints[20].x, keypoints[20].y, wrist.x, wrist.y);
       let avgDist = (d1 + d2) / 2;
 
-      // Umbral adaptado al tamaño de cámara optimizado
       if (avgDist < 50) { 
         isFist = true;
       } else {
@@ -145,7 +35,7 @@ function processHand() {
   }
 }
 
-// Clase Partícula de Humo / Arena Optimizada para CPU de móvil
+// Clase Partícula
 class Particle {
   constructor() {
     this.pos = createVector(random(width), random(height));
@@ -156,8 +46,8 @@ class Particle {
     this.noiseSeed = random(1000);
     
     this.isWhite = random(1) > 0.45;
-    this.alpha = random(90, 180); 
-    this.size = random(1.5, 3.2); // Ligeramente más grandes para rellenar mejor siendo menos cantidad
+    this.alpha = random(80, 160); 
+    this.size = random(7.0, 14.0); // Tamaño generoso para cubrir excelente las letras
     
     this.target = null;
   }
@@ -172,28 +62,27 @@ class Particle {
 
   update() {
     if (this.target) {
-      // 1. VIAJAR A LAS LETRAS
+      // 1. COMPORTAMIENTO DE TEXTO (Atracción rápida y precisa)
       let desired = p5.Vector.sub(this.target, this.pos);
       let d = desired.mag();
       desired.normalize();
       
-      if (d < 30) {
-        let m = map(d, 0, 30, 0, this.maxSpeed);
+      if (d < 25) {
+        let m = map(d, 0, 25, 0, this.maxSpeed);
         desired.mult(m);
-        
-        // Ondulación simplificada para ahorrar ciclos de CPU
-        let smokeWave = sin(this.pos.x * 0.05 + frameCount * 0.1) * 1.5;
+        // Sutil ondulación de humo para mantenerlas vivas pero legibles
+        let smokeWave = sin(this.pos.x * 0.05 + frameCount * 0.1) * 1.2;
         desired.add(smokeWave, smokeWave);
       } else {
         desired.mult(this.maxSpeed);
       }
       
       let steer = p5.Vector.sub(desired, this.vel);
-      steer.limit(this.maxForce * 2);
+      steer.limit(this.maxForce * 2.2); // Más fuerza de llegada para que no queden dispersas
       this.applyForce(steer);
       
     } else {
-      // 2. MANTENER BANDERA
+      // 2. COMPORTAMIENTO DE BANDERA
       let bandY;
       if (this.isWhite) {
         bandY = height * 0.5;
@@ -206,13 +95,12 @@ class Particle {
       let dFlag = flagForce.mag();
       flagForce.normalize();
       
-      let flagStrength = map(dFlag, 0, height, 0, 0.15); 
+      let flagStrength = map(dFlag, 0, height, 0, 0.12); 
       flagForce.mult(flagStrength);
       this.applyForce(flagForce);
 
-      // Ruido de viento muy suave
       let angle = noise(this.pos.x * 0.005, this.pos.y * 0.005, this.noiseSeed + frameCount * 0.002) * TWO_PI;
-      let wind = p5.Vector.fromAngle(angle).mult(0.04);
+      let wind = p5.Vector.fromAngle(angle).mult(0.03);
       this.applyForce(wind);
 
       // 3. INTERACCIÓN DE EMPUJE REALISTA
@@ -220,30 +108,29 @@ class Particle {
         let dx = this.pos.x - handX;
         let dy = this.pos.y - handY;
         let d = sqrt(dx * dx + dy * dy);
-        let forceRadius = 150; // Un poco más chico el radio en celular para procesar menos partículas
+        let forceRadius = 140; 
         
         if (d < forceRadius) {
           let push = createVector(dx, dy);
           push.normalize();
           
           let pct = (forceRadius - d) / forceRadius; 
-          let pushStrength = pct * pct * 3.5; 
+          let pushStrength = pct * pct * 4.0; 
           push.mult(pushStrength);
           this.applyForce(push);
           
-          // Arrastre por movimiento de mano
           let handVelocity = createVector(handX - prevHandX, handY - prevHandY);
-          handVelocity.limit(10); 
-          handVelocity.mult(pct * 0.35);
+          handVelocity.limit(12); 
+          handVelocity.mult(pct * 0.4);
           this.applyForce(handVelocity);
         }
       }
 
-      this.vel.mult(0.92); 
+      this.vel.mult(0.93); 
     }
 
     this.vel.add(this.acc);
-    this.vel.limit(this.maxSpeed * (this.target ? 1 : 0.7)); 
+    this.vel.limit(this.maxSpeed * (this.target ? 1 : 0.75)); 
     this.pos.add(this.vel);
     this.acc.mult(0);
 
@@ -268,7 +155,7 @@ class Particle {
   }
 }
 
-// Generador de letras optimizado (menos densidad para celular pero igual de definidas)
+// Generador de letras denso y definido
 function generateVectorTextPoints() {
   textPoints = [];
   
@@ -341,16 +228,16 @@ function generateVectorTextPoints() {
   let xO = xY + charW + gap;
   drawSegment(xO, line2Y, xO + charW, line2Y);
   drawSegment(xO + charW, line2Y, xO + charW, line2Y + charH);
-  drawSegment(xO + charW, line2Y + charH, xO, line2Y + charH);
+  drawSegment(xO + charW, line2Y + charH, xO, line2Y + charH); 
   drawSegment(xO, line2Y + charH, xO, line2Y);
 
   textPoints.sort(() => random() - 0.5);
 }
 
+// Subimos la cantidad de puntos de la estructura para que sea ultra nítida
 function drawSegment(x1, y1, x2, y2) {
   let d = dist(x1, y1, x2, y2);
-  // Reducimos levemente el multiplicador (de 1.8 a 1.2) para que use menos puntos, ideal para celular
-  let steps = Math.floor(d * 1.2);
+  let steps = Math.floor(d * 2.2); // Más resolución en el dibujo vectorial de letras
   
   Array.from({ length: steps + 1 }).forEach((_, i) => {
     let t = i / steps;
