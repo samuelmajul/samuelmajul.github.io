@@ -1,11 +1,10 @@
 // noprotect
 p5.disableFriendlyErrors = true;
 
-// --- SOLUCIÓN DE INICIO INMEDIATO ---
-// Forzamos WebGL a nivel global para que ml5.js ni intente usar WebGPU en preload()
+// Forzar WebGL desde el inicio para evitar demoras
 if (typeof window !== "undefined" && window.ml5 && window.ml5.tf) {
   window.ml5.tf.setBackend('webgl')
-    .then(() => console.log("WebGL forzado con éxito desde el inicio"))
+    .then(() => console.log("WebGL forzado con éxito"))
     .catch(() => window.ml5.tf.setBackend('cpu'));
 }
 
@@ -13,9 +12,9 @@ let video;
 let handPose;
 let hands = [];
 
-// 450 partículas grandes: súper liviano
+// 320 partículas: liviano y estético
 let particles = [];
-let maxParticles = 450; 
+let maxParticles = 320; 
 
 let textPoints = [];
 let handX = 0;
@@ -25,16 +24,18 @@ let prevHandY = 0;
 let isFist = false;
 let modelLoaded = false;
 
+// Optimización: Detectar mano 1 de cada 2 frames
+let detectionFrameCount = 0;
+
 function preload() {
-  // Ahora handPose cargará directamente con WebGL sin dar errores ni vueltas
   handPose = ml5.handPose({ maxHands: 1, flipped: true }, () => {
-    console.log("¡Modelo de mano cargado exitosamente!");
+    console.log("¡Modelo de mano cargado!");
     modelLoaded = true;
   });
 }
 
 function setup() {
-  // Proporción 9:16 para celulares
+  // Ajuste de pantalla vertical 9:16 para celulares
   let h = windowHeight;
   let w = (windowHeight * 9) / 16;
   if (w > windowWidth) {
@@ -45,48 +46,54 @@ function setup() {
   pixelDensity(1); 
   createCanvas(w, h);
 
+  // Cámara ultra miniatura para rendimiento extremo
   video = createCapture(VIDEO);
-  video.size(320, 240);
+  video.size(120, 90); 
   video.hide();
 
   handPose.detectStart(video, gotHands);
 
-  // Inicializar partículas
+  // Inicializar partículas grandes
   particles = Array.from({ length: maxParticles }, () => new Particle());
 
-  // Generamos los puntos del texto (ultra rápido con pasos optimizados)
   generateVectorTextPoints();
 }
 
 function draw() {
+  // Fondo negro puro (sin la cámara estirada detrás)
   background(0);
 
-  // 1. Render de cámara espejado
+  // 1. Dibujar vista previa miniatura en la zona centro-superior
+  let pvW = width * 0.32; // Ancho: 32% de la pantalla
+  let pvH = pvW * (90 / 120); // Mantiene proporción 120x90
+  let pvX = (width - pvW) / 2; // Centrado horizontal
+  let pvY = height * 0.04; // Un toque abajo del borde superior
+
   push();
-  translate(width, 0);
+  // Espejado local solo para la ventanita de preview
+  translate(pvX + pvW, pvY);
   scale(-1, 1); 
-  
-  let aspectVideo = video.width / video.height;
-  let aspectCanvas = width / height;
-  let drawW, drawH, sx, sy;
-  
-  if (aspectVideo > aspectCanvas) {
-    drawH = height;
-    drawW = height * aspectVideo;
-    sx = (drawW - width) / 2;
-    sy = 0;
-    image(video, -sx, sy, drawW, drawH);
-  } else {
-    drawW = width;
-    drawH = width / aspectVideo;
-    sx = 0;
-    sy = (drawH - height) / 2;
-    image(video, sx, -sy, drawW, drawH);
-  }
+  image(video, 0, 0, pvW, pvH);
   pop();
 
-  // 2. Procesamiento de tracking
-  processHand();
+  // Marco estético para la cámara
+  noFill();
+  stroke(255, 80); // Blanco semitransparente
+  strokeWeight(1.5);
+  rect(pvX, pvY, pvW, pvH, 6); // Esquinas un toque redondeadas
+
+  // Indicador de "Puño detectado" rápido (opcional y sutil)
+  if (isFist) {
+    fill(116, 172, 223, 200);
+    noStroke();
+    ellipse(width / 2, pvY + pvH + 15, 8, 8);
+  }
+
+  // 2. Procesamiento optimizado del tracking
+  detectionFrameCount++;
+  if (detectionFrameCount % 2 === 0) { 
+    processHand();
+  }
 
   // 3. Dibujar y actualizar partículas
   let tLen = textPoints.length;
@@ -117,17 +124,20 @@ function processHand() {
       prevHandX = handX;
       prevHandY = handY;
       
-      let targetX = map(indexTip.x, 0, 320, width, 0);
-      let targetY = map(indexTip.y, 0, 240, 0, height);
-      handX = lerp(handX, targetX, 0.4);
-      handY = lerp(handY, targetY, 0.4);
+      // Mapeo adaptado a la cámara de 120x90 para que uses toda la pantalla
+      let targetX = map(indexTip.x, 0, 120, width, 0);
+      let targetY = map(indexTip.y, 0, 90, 0, height);
+      handX = lerp(handX, targetX, 0.45);
+      handY = lerp(handY, targetY, 0.45);
 
+      // Detección de puño adaptada al nuevo tamaño miniatura
       let wrist = keypoints[0];
-      let d1 = dist(keypoints[8].x, keypoints[8].y, wrist.x, wrist.y);
-      let d2 = dist(keypoints[20].x, keypoints[20].y, wrist.x, wrist.y);
-      let avgDist = (d1 + d2) / 2;
+      let dx1 = keypoints[8].x - wrist.x;
+      let dy1 = keypoints[8].y - wrist.y;
+      let d1Sq = dx1 * dx1 + dy1 * dy1; 
 
-      if (avgDist < 50) { 
+      // Con cámara de 120px, un puño cerrado suele estar por debajo de 500-600 de distancia al cuadrado
+      if (d1Sq < 570) { 
         isFist = true;
       } else {
         isFist = false;
@@ -149,8 +159,8 @@ class Particle {
     this.noiseSeed = random(1000);
     
     this.isWhite = random(1) > 0.45;
-    this.alpha = random(90, 170); 
-    this.size = random(8.0, 15.0); // Copos grandes para rellenar rápido el texto
+    this.alpha = random(95, 175); 
+    this.size = random(9.5, 16.5); 
     
     this.target = null;
   }
@@ -185,12 +195,7 @@ class Particle {
       
     } else {
       // 2. COMPORTAMIENTO DE BANDERA
-      let bandY;
-      if (this.isWhite) {
-        bandY = height * 0.5;
-      } else {
-        bandY = this.noiseSeed > 500 ? height * 0.25 : height * 0.75;
-      }
+      let bandY = this.isWhite ? height * 0.5 : (this.noiseSeed > 500 ? height * 0.25 : height * 0.75);
       
       let flagTarget = createVector(this.pos.x, bandY);
       let flagForce = p5.Vector.sub(flagTarget, this.pos);
@@ -201,22 +206,23 @@ class Particle {
       flagForce.mult(flagStrength);
       this.applyForce(flagForce);
 
-      let angle = noise(this.pos.x * 0.005, this.pos.y * 0.005, this.noiseSeed + frameCount * 0.002) * TWO_PI;
-      let wind = p5.Vector.fromAngle(angle).mult(0.03);
-      this.applyForce(wind);
+      // Micro vientos
+      let windX = sin(this.pos.y * 0.005 + frameCount * 0.01) * 0.03;
+      this.applyForce(createVector(windX, 0));
 
-      // 3. INTERACCIÓN DE EMPUJE REALISTA
+      // 3. INTERACCIÓN DE EMPUJE (Optimizado sin dist() de raíz cuadrada)
       if (hands && hands.length > 0) {
         let dx = this.pos.x - handX;
         let dy = this.pos.y - handY;
-        let d = sqrt(dx * dx + dy * dy);
-        let forceRadius = 140; 
+        let distSq = dx * dx + dy * dy; 
+        let forceRadiusSq = 19600; // 140px al cuadrado
         
-        if (d < forceRadius) {
+        if (distSq < forceRadiusSq) {
           let push = createVector(dx, dy);
           push.normalize();
           
-          let pct = (forceRadius - d) / forceRadius; 
+          let d = sqrt(distSq); 
+          let pct = (140 - d) / 140; 
           let pushStrength = pct * pct * 4.0; 
           push.mult(pushStrength);
           this.applyForce(push);
@@ -236,6 +242,7 @@ class Particle {
     this.pos.add(this.vel);
     this.acc.mult(0);
 
+    // Límites simples de pantalla
     if (this.pos.x < 0) this.pos.x = width;
     if (this.pos.x > width) this.pos.x = 0;
     if (this.pos.y < 0) this.pos.y = height;
@@ -336,9 +343,9 @@ function generateVectorTextPoints() {
   textPoints.sort(() => random() - 0.5);
 }
 
-// Pasos fijos optimizados (8 por trazo)
+// Pasos fijos ultra livianos para celular
 function drawSegment(x1, y1, x2, y2) {
-  let steps = 8; 
+  let steps = 7; 
   
   Array.from({ length: steps + 1 }).forEach((_, i) => {
     let t = i / steps;
