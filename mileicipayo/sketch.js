@@ -7,7 +7,7 @@ let hands = [];
 
 // Reducimos a 1000 para que en celular vuele y mantenga la densidad visual
 let particles = [];
-let maxParticles = 1000; 
+let maxParticles = 6000; 
 
 let textPoints = [];
 let handX = 0;
